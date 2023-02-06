@@ -1,0 +1,90 @@
+{
+  "name": "hi-mobx-repo",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "packages/*",
+      "applications/*"
+    ]
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:ts": "eslint --ext .ts,.tsx ./",
+    "lint:ts:fix": "yarn lint:ts -- --fix",
+    "spell": "cspell . --no-cache --dot --no-progress",
+    "prettier": "prettier --check .",
+    "prettier:fix": "prettier --write .",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.19",
+    "@cspell/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "5.50.0",
+    "@typescript-eslint/parser": "5.50.0",
+    "cspell": "^6.21.0",
+    "eslint": "^8.33.0",
+    "eslint-config-airbnb": "19.0.4",
+    "eslint-config-airbnb-typescript": "17.0.0",
+    "eslint-config-prettier": "8.6.0",
+    "eslint-formatter-pretty": "4.1.0",
+    "eslint-plugin-eslint-comments": "3.2.0",
+    "eslint-plugin-import": "2.27.5",
+    "eslint-plugin-jest": "27.2.1",
+    "eslint-plugin-jest-formatting": "^3.1.0",
+    "eslint-plugin-jsx-a11y": "6.7.1",
+    "eslint-plugin-promise": "6.1.1",
+    "eslint-plugin-react": "7.32.2",
+    "eslint-plugin-unicorn": "45.0.2",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.1.0",
+    "lodash": "^4.17.21",
+    "prettier": "2.8.3",
+    "typescript": "4.9.5",
+    "vite": "4.1.1"
+  },
+  "cspell": {
+    "version": "0.2",
+    "language": "en",
+    "useGitignore": true,
+    "dictionaryDefinitions": [
+      {
+        "name": "import-names",
+        "path": "./.cspell/import-names.txt"
+      },
+      {
+        "name": "known-names",
+        "path": "./.cspell/known-names.txt"
+      },
+      {
+        "name": "project-words",
+        "path": "./.cspell/project-words.txt",
+        "addWords": true
+      }
+    ],
+    "dictionaries": [
+      "fonts",
+      "typescript",
+      "npm",
+      "css",
+      "fullstack",
+      "import-names",
+      "project-words",
+      "known-names"
+    ],
+    "ignorePaths": [
+      "node_modules",
+      ".cspell",
+      ".github",
+      ".git",
+      ".vscode",
+      ".idea",
+      "package.json",
+      "countries.json",
+      "*.lottie.json",
+      "*.log",
+      "*.svg",
+      "*.snap",
+      "*.css"
+    ]
+  }
+}
