@@ -1,0 +1,10 @@
+*.log
+.git/
+.idea/
+.vscode
+build/
+coverage/
+dist/
+node_modules/
+storybook-static/
+/README.md
