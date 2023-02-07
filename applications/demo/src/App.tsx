@@ -1,7 +1,16 @@
 import { useState } from 'react';
-import { Button } from '@urrri/hi-mobx';
+// import { Button } from '@urrri/hi-mobx';
 import logo from './logo.svg';
 import './App.css';
+
+type Params = { children: string; onClick: () => void };
+function Button({ children, onClick }: Params): any {
+  return (
+    <button type="button" onClick={onClick}>
+      {children}
+    </button>
+  );
+}
 
 function App() {
   const [count, setCount] = useState(0);
