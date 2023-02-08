@@ -17,10 +17,11 @@ export default defineConfig({
       fileName: (format) => `hi-mobx.${format}.js`,
     },
     rollupOptions: {
-      external: ['mobx'],
+      external: ['mobx', 'lodash'],
       output: {
         globals: {
           mobx: 'mobx',
+          lodash: 'lodash',
         },
       },
     },

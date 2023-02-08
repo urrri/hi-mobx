@@ -14,7 +14,8 @@
     "spell": "cspell . --no-cache --dot --no-progress",
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write .",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "eslint-check-config": "eslint-config-prettier ./.eslintrc"
   },
   "devDependencies": {
     "@types/node": "^18.11.19",
