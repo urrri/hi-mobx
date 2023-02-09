@@ -46,7 +46,7 @@ export const setCustomMeta = <TMeta extends CustomMeta>(
  * @param getChildren
  */
 export const forEachNode =
-  <TNode extends HNode<TNode>, TMeta extends CustomMeta>(getChildren: (customMeta: TMeta) => Array<TNode>) =>
+  <TNode extends HNode<TNode>, TMeta extends CustomMeta>(getChildren: (customMeta: TMeta) => TNode[]) =>
   /**
    * runs callback for each node hierarchically, starting specified one.
    * @param action - function to call

@@ -4,7 +4,6 @@
 // const Button = (params: Params): any => null;
 // export { Button };
 
-export * from './core/hierarchical';
 export * from './core/hierarchicalStore';
 export * from './stores/baseStore';
 export * from './stores/baseLeafCallableStore';

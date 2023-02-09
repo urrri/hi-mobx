@@ -1,22 +1,19 @@
 import { action } from 'mobx';
-import {
-  getCustomMeta,
-  getParent,
-  getRoot,
-  initHierarchyFromRoot,
-  isHierarchyInitialized,
-  setCustomMeta,
-} from '../core/hierarchical';
+import { initHierarchyFromRoot } from '../core/hierarchical';
 import {
   createStore,
   findChildStore,
+  getParentStore,
+  getRootStore,
+  getStoreMeta,
   HParentStore,
   HStore,
   HStoreConstructor,
   initHierarchy,
   initStoreWithChildren,
+  isHierarchyInitialized,
+  setStoreMeta,
   StoreCreator,
-  StoreMeta,
 } from '../core/hierarchicalStore';
 
 function reRegisterExistingDuplicatedStore($rootStore: Record<string, HStore>, name: string) {
@@ -26,7 +23,7 @@ function reRegisterExistingDuplicatedStore($rootStore: Record<string, HStore>, n
   const prevStore = $rootStore[name];
   if (!prevStore) return;
 
-  const prevStoreHName = getCustomMeta<{ hName: string }>(prevStore).hName;
+  const prevStoreHName = getStoreMeta<{ hName: string }>(prevStore).hName;
   if (!(prevStoreHName && prevStoreHName !== name)) return;
 
   // if registered store is not own child of $rootStore - re-register it under fully qualified name
@@ -46,14 +43,14 @@ function reRegisterExistingDuplicatedStore($rootStore: Record<string, HStore>, n
 }
 
 function registerChildrenOnRoot(topStore: HStore, names: string[]): void {
-  const { children } = getCustomMeta<StoreMeta>(topStore);
+  const { children } = getStoreMeta(topStore);
   if (!children) return;
   const $rootStore = topStore.$rootStore as unknown as Record<string, HStore>;
 
   Object.entries(children).forEach(([name, child]) => {
     const childNames = [...names, name];
     const hName = childNames.join('.');
-    setCustomMeta(child, { hName });
+    setStoreMeta(child, { hName });
     // if current parent is not root
     if (($rootStore as unknown) !== topStore) {
       if (Object.prototype.hasOwnProperty.call($rootStore, name)) {
@@ -115,11 +112,11 @@ export type BaseStoreOptions = {
 export class BaseStore implements HParentStore {
   get $parentStore(): HParentStore {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return getParent(this)!;
+    return getParentStore(this)!;
   }
 
   get $rootStore(): HParentStore {
-    return getRoot(this);
+    return getRootStore(this);
   }
 
   constructor(parentStore: HParentStore, { children, privateChildren, onBeforeInit }: BaseStoreOptions = {}) {
@@ -130,7 +127,7 @@ export class BaseStore implements HParentStore {
     initHierarchyFromRoot(this, onInitHierarchy);
   }
 
-  $createStore<TStore extends HStore, TParams extends Array<unknown>>(
+  $createStore<TStore extends HStore, TParams extends unknown[]>(
     StoreClass: HStoreConstructor<TStore, TParams>,
     ...params: TParams
   ): TStore {

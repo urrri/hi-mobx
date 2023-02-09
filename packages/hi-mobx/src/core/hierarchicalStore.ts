@@ -10,6 +10,8 @@ import {
   isHierarchyCreated,
   markHierarchyCreated,
   setCustomMeta,
+  isHierarchyInitialized as isNodeHierarchyInitialized,
+  getRoot,
 } from './hierarchical';
 import { uncapitalizeKeys, UncapitalizeRecordKeys } from '../utils/stringUtils';
 import { InstantiateClasses } from '../utils/types';
@@ -88,7 +90,7 @@ export interface HParentStore extends HStore {
    * @param params - extra parameters for the class constructor
    * (excluding first parentStore parameter)
    */
-  $createStore<TStore extends HStore, TParams extends Array<unknown>>(
+  $createStore<TStore extends HStore, TParams extends unknown[]>(
     StoreClass: HStoreConstructor<TStore, TParams>,
     ...params: TParams
   ): TStore;
@@ -113,18 +115,18 @@ export interface HRootStore extends HParentStore {
 export interface StoreMeta {
   children?: Record<string, HStore>;
   privateChildren?: Record<string, HStore>;
-  namelessUninitialized?: Array<HStore>;
+  namelessUninitialized?: HStore[];
   dynamicBranch?: boolean;
 }
 
 /**
  * hierarchical store constructor type. allows passing store class as newable objects
  */
-export interface HStoreConstructor<TStore extends HStore = HStore, TParams extends Array<unknown> = []> {
+export interface HStoreConstructor<TStore extends HStore = HStore, TParams extends unknown[] = never[]> {
   new (parent: HParentStore, ...params: TParams): TStore;
 }
 
-// export type HStoreConstructor<T extends HStore = HStore, P extends Array<unknown> = []> = new (
+// export type HStoreConstructor<T extends HStore = HStore, P extends unknown[] = []> = new (
 //   parent: HParentStore,
 //   ...params: P
 // ) => T;
@@ -132,6 +134,22 @@ export interface HStoreConstructor<TStore extends HStore = HStore, TParams exten
 type StoreFactory = (parent: HParentStore) => HStore;
 
 export type StoreCreator = HStoreConstructor | StoreFactory;
+
+type CustomMeta = Record<never, never>;
+
+export const getStoreMeta = <TMeta extends CustomMeta>(store: HStore | undefined): StoreMeta & TMeta =>
+  getCustomMeta<StoreMeta & TMeta>(store) || ({} as StoreMeta & TMeta);
+
+export const setStoreMeta = <TMeta extends CustomMeta>(
+  store: HStore,
+  values: Partial<TMeta> & Partial<StoreMeta>
+): void => setCustomMeta(store, values);
+
+export const isHierarchyInitialized = (store: HStore): boolean | undefined => isNodeHierarchyInitialized(store);
+
+export const getParentStore = (store: HStore): HParentStore | undefined => getParent(store);
+
+export const getRootStore = (store: HStore): HParentStore => getRoot(store);
 
 export function createChildren(
   parentStore: HParentStore,
@@ -148,7 +166,7 @@ export function createChildren(
     }
     let store: HStore;
     try {
-      const StoreClass = creator as HStoreConstructor<HStore>;
+      const StoreClass = creator as HStoreConstructor;
       store = new StoreClass(parentStore);
     } catch {
       store = (creator as StoreFactory)(parentStore);
@@ -165,15 +183,14 @@ export function createChildren(
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const registerNamelessStores = (store: any): void => {
-  const meta = getCustomMeta<StoreMeta>(store);
+const registerNamelessStores = (store: HStore): void => {
+  const meta = getStoreMeta(store);
   const { children = {}, namelessUninitialized } = meta;
   if (!namelessUninitialized?.length) return;
   let added = false;
-  Object.keys(store).forEach((key) => {
+  Object.entries(store).forEach(([key, member]) => {
     // check if already registered
     if (children[key]) return;
-    const member = store[key];
     // find and register
     if (member && namelessUninitialized.includes(member)) {
       children[key] = member;
@@ -234,7 +251,7 @@ export function initHierarchy(topStore: HStore): void {
   forEachStore(registerNamelessStores, topStore);
 
   // cleanup saved nameless stores
-  forEachStore((store) => delete getCustomMeta<StoreMeta>(store).namelessUninitialized, topStore, true);
+  forEachStore((store) => delete getStoreMeta(store).namelessUninitialized, topStore, true);
 }
 
 /**
@@ -246,7 +263,7 @@ export function initHierarchy(topStore: HStore): void {
  * @param StoreClass - store constructor
  * @param params - store constructor parameters
  */
-export function createStore<TStore extends HStore, TParams extends Array<unknown>>(
+export function createStore<TStore extends HStore, TParams extends unknown[]>(
   currentStore: HParentStore,
   StoreClass: HStoreConstructor<TStore, TParams>,
   ...params: TParams
@@ -254,7 +271,7 @@ export function createStore<TStore extends HStore, TParams extends Array<unknown
   // if main hierarchy created,
   // mark that we are building dynamic branch to allow initialization branch from top
   type DynamicProgress = { dynamicHierarchyInProgress?: boolean };
-  const $ = getCustomMeta<StoreMeta & DynamicProgress>(currentStore);
+  const $ = getStoreMeta<DynamicProgress>(currentStore);
   const hierarchyCreated = isHierarchyCreated(currentStore);
   if (hierarchyCreated) {
     $.dynamicHierarchyInProgress = true;
@@ -267,13 +284,13 @@ export function createStore<TStore extends HStore, TParams extends Array<unknown
       // if main hierarchy is ready,
 
       // mark created store as created in dynamic hierarchy to prevent making global references
-      setCustomMeta<StoreMeta>(store, { dynamicBranch: true });
+      setStoreMeta(store, { dynamicBranch: true });
 
       // remove progress flag
       $.dynamicHierarchyInProgress = false;
 
       // init from created story if it is on top of dynamic branch
-      const $parentMeta = getCustomMeta<DynamicProgress>(getParent(currentStore));
+      const $parentMeta = getStoreMeta<DynamicProgress>(getParentStore(currentStore));
       if (!$parentMeta.dynamicHierarchyInProgress) {
         initHierarchy(store);
       }
@@ -287,6 +304,8 @@ export function createStore<TStore extends HStore, TParams extends Array<unknown
     delete $.dynamicHierarchyInProgress;
   }
 }
+
+export const initStore = (store: HStore, parentStore: HParentStore): void => initNode(store, parentStore);
 
 export function initStoreWithChildren(
   store: HParentStore,
@@ -312,7 +331,7 @@ export function findChildStore(topStore: HParentStore, name: string): HStore | u
   if (store) return store;
 
   const find = (parent: HStore): HStore | undefined => {
-    const { children } = getCustomMeta<StoreMeta>(parent);
+    const { children } = getStoreMeta(parent);
     if (!children) return;
 
     if (children[name]) return children[name];
@@ -341,7 +360,7 @@ export const createHRoot = <
   onInitHierarchy: (root: HStore) => void = initHierarchy
 ): InstanceType<TRoot> & UncapitalizeRecordKeys<InstantiateClasses<TList>> => {
   const root = new RootStoreClass(null as never);
-  setCustomMeta<StoreMeta>(root, { children: createChildren(root, uncapitalizeKeys(list)) });
+  setStoreMeta(root, { children: createChildren(root, uncapitalizeKeys(list)) });
 
   markHierarchyCreated(root);
 

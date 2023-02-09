@@ -15,7 +15,7 @@ export class BaseRootStore extends BaseStore implements HRootStore {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createRoot = <
   TList extends Record<keyof TList, HStoreConstructor>,
-  TRoot extends HStoreConstructor<BaseRootStore>
+  TRoot extends HStoreConstructor<HRootStore> = typeof BaseRootStore
 >(
   list: TList,
   RootStoreClass: TRoot = BaseRootStore as TRoot
