@@ -8,7 +8,10 @@
   "scripts": {
     "build": "tsc && vite build",
     "watch": "yarn build -w",
-    "prepack": "json -f package.json -I -e \"delete this.devDependencies; delete this.dependencies\""
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
+    "prepack": "json -f package.json -I -e \"delete this.devDependencies; delete this.dependencies\"",
+    "webstorm-integration": "vitest --watch --reporter=dot --reporter=json --outputFile=.vitest-result.json"
   },
   "peerDependencies": {
     "mobx": ">=6.0.0",

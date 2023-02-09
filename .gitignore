@@ -66,3 +66,6 @@ npm-debug.log*
 
 # VS Code
 .vscode/
+
+# Vitest
+.vitest-result.json

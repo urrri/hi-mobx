@@ -127,6 +127,7 @@ module.exports = {
     {
       files: ['**/*.test.*', '**/*.spec.*'],
       rules: {
+        '@typescript-eslint/ban-ts-comment': 'off',
         '@typescript-eslint/no-shadow': 'off',
         '@typescript-eslint/no-empty-function': 'off',
         '@typescript-eslint/no-use-before-define': 'off',

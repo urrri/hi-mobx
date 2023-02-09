@@ -1,5 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck // cspell:disable-line
+// @ts-nocheck
+
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
+
 import { BaseStore } from './baseStore';
 /**
  * leaf store
@@ -146,19 +148,17 @@ describe('BaseStore', () => {
   });
 
   it('initializes after construction', () => {
-    const afterConstructor = jest
-      .spyOn(C.prototype, 'afterConstructor')
-      .mockImplementation(function afterConstructor() {
-        expect(this.$getStore('X')).toBeUndefined();
-        expect(onStoreInit).not.toBeCalled();
-      });
-    const onStoreInit = jest.spyOn(C.prototype, 'onStoreInit').mockImplementation(function onStoreInit() {
+    const afterConstructor = vi.spyOn(C.prototype, 'afterConstructor').mockImplementation(function afterConstructor() {
+      expect(this.$getStore('X')).toBeUndefined();
+      expect(onStoreInit).not.toBeCalled();
+    });
+    const onStoreInit = vi.spyOn(C.prototype, 'onStoreInit').mockImplementation(function onStoreInit() {
       expect(this.$getStore('X')).toBeInstanceOf(A);
       expect(afterConstructor).toBeCalled();
       expect(onStoreRelationsInit).not.toBeCalled();
     });
 
-    const onStoreRelationsInit = jest.spyOn(C.prototype, 'onStoreRelationsInit').mockImplementation(() => {
+    const onStoreRelationsInit = vi.spyOn(C.prototype, 'onStoreRelationsInit').mockImplementation(() => {
       expect(onStoreInit).toBeCalled();
     });
 
@@ -173,31 +173,29 @@ describe('BaseStore', () => {
     expect(onStoreInit).toBeCalled();
     expect(onStoreRelationsInit).toBeCalled();
 
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('initializes dynamically created private stores', () => {
     // p1 - constructed till the end of constructor
     // p2 - constructed while initialization
 
-    const p1Init = jest.spyOn(P1.prototype, 'onStoreInit');
-    const p1FinalInit = jest.spyOn(P1.prototype, 'onStoreRelationsInit');
-    const p2Init = jest.spyOn(P2.prototype, 'onStoreInit');
-    const p2FinalInit = jest.spyOn(P2.prototype, 'onStoreRelationsInit');
+    const p1Init = vi.spyOn(P1.prototype, 'onStoreInit');
+    const p1FinalInit = vi.spyOn(P1.prototype, 'onStoreRelationsInit');
+    const p2Init = vi.spyOn(P2.prototype, 'onStoreInit');
+    const p2FinalInit = vi.spyOn(P2.prototype, 'onStoreRelationsInit');
 
-    const afterConstructor = jest
-      .spyOn(D.prototype, 'afterConstructor')
-      .mockImplementation(function afterConstructor() {
-        // p1 - still not initialized
-        expect(this.$getChildStore('priv2')).toBeInstanceOf(P1);
-        expect(p1Init).not.toBeCalled();
+    const afterConstructor = vi.spyOn(D.prototype, 'afterConstructor').mockImplementation(function afterConstructor() {
+      // p1 - still not initialized
+      expect(this.$getChildStore('priv2')).toBeInstanceOf(P1);
+      expect(p1Init).not.toBeCalled();
 
-        this.priv3 = this.$createStore(P1);
+      this.priv3 = this.$createStore(P1);
 
-        expect(this.$getChildStore('priv3')).toBeInstanceOf(P1);
-        expect(p1Init).not.toBeCalled();
-      });
-    const onStoreInit = jest.spyOn(D.prototype, 'onStoreInit').mockImplementation(function onStoreInit() {
+      expect(this.$getChildStore('priv3')).toBeInstanceOf(P1);
+      expect(p1Init).not.toBeCalled();
+    });
+    const onStoreInit = vi.spyOn(D.prototype, 'onStoreInit').mockImplementation(function onStoreInit() {
       // p1 - still not initialized
       expect(p1Init).not.toBeCalled();
 
@@ -210,7 +208,7 @@ describe('BaseStore', () => {
       expect(p2FinalInit).toBeCalledTimes(1);
     });
 
-    const onStoreRelationsInit = jest
+    const onStoreRelationsInit = vi
       .spyOn(D.prototype, 'onStoreRelationsInit')
       .mockImplementation(function onStoreRelationsInit() {
         // p1 - only initialized, not finalized
@@ -248,7 +246,7 @@ describe('BaseStore', () => {
     expect(disconnected).toBeInstanceOf(P2);
     expect(p2FinalInit).toBeCalledTimes(3);
 
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('creates private store', () => {
@@ -263,7 +261,7 @@ describe('BaseStore', () => {
   });
 
   it('resets store without onStoreReset', () => {
-    const onStoreInitC = jest.spyOn(C.prototype, 'onStoreInit').mockImplementation(() => {});
+    const onStoreInitC = vi.spyOn(C.prototype, 'onStoreInit').mockImplementation(() => {});
 
     expect(onStoreInitC).not.toBeCalled();
 
@@ -277,8 +275,8 @@ describe('BaseStore', () => {
   });
 
   it('resets store with onStoreReset', () => {
-    const onStoreInitD = jest.spyOn(D.prototype, 'onStoreInit').mockImplementation(() => {});
-    const onStoreResetD = jest.spyOn(D.prototype, 'onStoreReset').mockImplementation(() => {});
+    const onStoreInitD = vi.spyOn(D.prototype, 'onStoreInit').mockImplementation(() => {});
+    const onStoreResetD = vi.spyOn(D.prototype, 'onStoreReset').mockImplementation(() => {});
 
     expect(onStoreInitD).not.toBeCalled();
     expect(onStoreResetD).not.toBeCalled();
