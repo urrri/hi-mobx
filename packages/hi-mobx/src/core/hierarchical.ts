@@ -14,25 +14,30 @@ interface HMeta<TNode extends HNode<TNode>> extends Object {
   customMeta: CustomMeta;
 }
 
-export const getParent = <TNode extends HNode<TNode>>(node: HNode<TNode>): TNode | undefined =>
-  node[hidden]?.parent as TNode;
+const getMeta = <TNode extends HNode<TNode>>(node: HNode<TNode> | undefined): HMeta<TNode> | undefined =>
+  node?.[hidden];
 
-export const getRoot = <TNode extends HNode<TNode>>(node: HNode<TNode>): TNode => node[hidden]?.root as TNode;
+export const getParent = <TNode extends HNode<TNode>>(node: HNode<TNode>): TNode | undefined =>
+  getMeta(node)?.parent as TNode;
+
+export const getRoot = <TNode extends HNode<TNode>>(node: HNode<TNode>): TNode => getMeta(node)?.root as TNode;
 
 export const isHierarchyCreated = <TNode extends HNode<TNode>>(node: HNode<TNode>): boolean | undefined =>
-  getRoot(node)?.[hidden]?.isHierarchyCreated;
+  getMeta(getRoot(node))?.isHierarchyCreated;
 
 export const isHierarchyInitialized = <TNode extends HNode<TNode>>(node: HNode<TNode>): boolean | undefined =>
-  getRoot(node)?.[hidden]?.isHierarchyInitialized;
+  getMeta(getRoot(node))?.isHierarchyInitialized;
 
-export const getCustomMeta = <TMeta extends CustomMeta>(node: HNode<never> | undefined): TMeta =>
-  (node?.[hidden]?.customMeta || {}) as TMeta;
+export const getCustomMeta = <TMeta extends CustomMeta>(
+  node: HNode<never> | undefined,
+  defaultMeta: TMeta = {} as TMeta
+): TMeta => (getMeta(node)?.customMeta || defaultMeta) as TMeta;
 
 export const setCustomMeta = <TMeta extends CustomMeta>(
   node: HNode<never>,
   values: Partial<Record<keyof TMeta, unknown>>
 ): void => {
-  const meta = node[hidden]?.customMeta;
+  const meta = getMeta(node)?.customMeta;
   if (meta) Object.assign(meta, values);
 };
 
@@ -70,23 +75,28 @@ export const initNode = <TNode extends HNode<TNode>, TMeta extends CustomMeta>(
   parent: HNode<TNode>,
   onCustomInit?: (customMeta: TMeta) => void
 ): void => {
-  if (node[hidden]) throw new Error('Cannot initialize node twice');
+  if (getMeta(node)) throw new Error('The node is already initialized');
+
   const customMeta: TMeta = {} as TMeta;
-  // eslint-disable-next-line no-param-reassign
-  node[hidden] = {
+
+  const $: HMeta<TNode> = {
     parent, // apply parent as is (no parent on root)
     root: (parent && getRoot(parent)) ?? node,
     customMeta,
   };
+
+  node[hidden] = $; // eslint-disable-line no-param-reassign
+
   onCustomInit?.(customMeta);
+
   if (!parent) {
     // this is root
-    node[hidden].isHierarchyCreated = true; // eslint-disable-line no-param-reassign
+    $.isHierarchyCreated = true;
   }
 };
 
 export const markHierarchyCreated = <TNode extends HNode<TNode>>(node: TNode): void => {
-  const $ = node[hidden];
+  const $ = getMeta(node);
   if (!$) throw new Error('Cannot process uninitialized node');
   if (!$.parent) {
     // this is root
@@ -98,7 +108,7 @@ export const initHierarchyFromRoot = <TNode extends HNode<TNode>>(
   node: HNode<TNode>,
   onInitHierarchy: (root: TNode) => void
 ): void => {
-  const $ = node[hidden];
+  const $ = getMeta(node);
 
   // execute only on root node (no parent)
   if ($ && !$.parent) {
