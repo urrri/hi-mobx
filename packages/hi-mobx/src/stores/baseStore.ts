@@ -1,4 +1,4 @@
-import { action } from 'mobx';
+import { action, makeObservable } from 'mobx';
 import { initHierarchyFromRoot } from '../core/hierarchical';
 import {
   createStore,
@@ -16,7 +16,7 @@ import {
   StoreCreator,
 } from '../core/hierarchicalStore';
 
-function reRegisterExistingDuplicatedStore($rootStore: Record<string, HStore>, name: string) {
+const reRegisterExistingDuplicatedStore = ($rootStore: Record<string, HStore>, name: string) => {
   // do nothing, if service property getter found (registered on previous duplication)
   if (Object.getOwnPropertyDescriptor($rootStore, name)?.get) return;
 
@@ -40,9 +40,9 @@ function reRegisterExistingDuplicatedStore($rootStore: Record<string, HStore>, n
       throw new Error(`Use fully qualified name to access "${name}" store`);
     },
   });
-}
+};
 
-function registerChildrenOnRoot(topStore: HStore, names: string[]): void {
+const registerChildrenOnRoot = (topStore: HStore, names: string[]): void => {
   const { children } = getStoreMeta(topStore);
   if (!children) return;
   const $rootStore = topStore.$rootStore as unknown as Record<string, HStore>;
@@ -69,7 +69,7 @@ function registerChildrenOnRoot(topStore: HStore, names: string[]): void {
     }
     registerChildrenOnRoot(child, childNames);
   });
-}
+};
 
 export const onInitHierarchy = (root: HStore): void => {
   // following functions rerun themselves hierarchically on each child;
@@ -127,11 +127,15 @@ export class BaseStore implements HParentStore {
     initHierarchyFromRoot(this, onInitHierarchy);
   }
 
-  $createStore<TStore extends HStore, TParams extends unknown[]>(
-    StoreClass: HStoreConstructor<TStore, TParams>,
-    ...params: TParams
+  $createStore<TStore extends HStore, TStoreCtorParams extends unknown[]>(
+    StoreClass: HStoreConstructor<TStore, TStoreCtorParams>,
+    ...params: TStoreCtorParams
   ): TStore {
-    return createStore(this, StoreClass, ...params);
+    return createStore(this, StoreClass)(...params);
+  }
+
+  onStoreMakeObservable(): void {
+    makeObservable(this, undefined, { autoBind: true });
   }
 
   onStoreInit?(): void;

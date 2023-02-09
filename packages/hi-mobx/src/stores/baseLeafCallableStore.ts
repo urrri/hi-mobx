@@ -1,4 +1,4 @@
-import { action } from 'mobx';
+import { action, makeObservable } from 'mobx';
 import type { HParentStore, HStore } from '../core/hierarchicalStore';
 import {
   findChildStore,
@@ -40,6 +40,10 @@ export class BaseLeafCallableStore<TParams extends unknown[], TReturn = unknown>
       throw new Error('Leaf store must have parent');
     }
     initStore(this, parentStore);
+  }
+
+  onStoreMakeObservable(): void {
+    makeObservable(this, undefined, { autoBind: true });
   }
 
   @action.bound
