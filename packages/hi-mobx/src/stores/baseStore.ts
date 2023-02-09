@@ -1,32 +1,29 @@
-import { action } from 'mobx';
-import {
-  getCustomMeta,
-  getParent,
-  getRoot,
-  initHierarchyFromRoot,
-  isHierarchyInitialized,
-  setCustomMeta,
-} from '../core/hierarchical';
+import { action, makeObservable } from 'mobx';
+import { initHierarchyFromRoot } from '../core/hierarchical';
 import {
   createStore,
   findChildStore,
+  getParentStore,
+  getRootStore,
+  getStoreMeta,
   HParentStore,
   HStore,
   HStoreConstructor,
   initHierarchy,
   initStoreWithChildren,
+  isHierarchyInitialized,
+  setStoreMeta,
   StoreCreator,
-  StoreMeta,
 } from '../core/hierarchicalStore';
 
-function reRegisterExistingDuplicatedStore($rootStore: Record<string, HStore>, name: string) {
+const reRegisterExistingDuplicatedStore = ($rootStore: Record<string, HStore>, name: string) => {
   // do nothing, if service property getter found (registered on previous duplication)
   if (Object.getOwnPropertyDescriptor($rootStore, name)?.get) return;
 
   const prevStore = $rootStore[name];
   if (!prevStore) return;
 
-  const prevStoreHName = getCustomMeta<{ hName: string }>(prevStore).hName;
+  const prevStoreHName = getStoreMeta<{ hName: string }>(prevStore).hName;
   if (!(prevStoreHName && prevStoreHName !== name)) return;
 
   // if registered store is not own child of $rootStore - re-register it under fully qualified name
@@ -43,17 +40,17 @@ function reRegisterExistingDuplicatedStore($rootStore: Record<string, HStore>, n
       throw new Error(`Use fully qualified name to access "${name}" store`);
     },
   });
-}
+};
 
-function registerChildrenOnRoot(topStore: HStore, names: string[]): void {
-  const { children } = getCustomMeta<StoreMeta>(topStore);
+const registerChildrenOnRoot = (topStore: HStore, names: string[]): void => {
+  const { children } = getStoreMeta(topStore);
   if (!children) return;
   const $rootStore = topStore.$rootStore as unknown as Record<string, HStore>;
 
   Object.entries(children).forEach(([name, child]) => {
     const childNames = [...names, name];
     const hName = childNames.join('.');
-    setCustomMeta(child, { hName });
+    setStoreMeta(child, { hName });
     // if current parent is not root
     if (($rootStore as unknown) !== topStore) {
       if (Object.prototype.hasOwnProperty.call($rootStore, name)) {
@@ -72,7 +69,7 @@ function registerChildrenOnRoot(topStore: HStore, names: string[]): void {
     }
     registerChildrenOnRoot(child, childNames);
   });
-}
+};
 
 export const onInitHierarchy = (root: HStore): void => {
   // following functions rerun themselves hierarchically on each child;
@@ -115,11 +112,11 @@ export type BaseStoreOptions = {
 export class BaseStore implements HParentStore {
   get $parentStore(): HParentStore {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return getParent(this)!;
+    return getParentStore(this)!;
   }
 
   get $rootStore(): HParentStore {
-    return getRoot(this);
+    return getRootStore(this);
   }
 
   constructor(parentStore: HParentStore, { children, privateChildren, onBeforeInit }: BaseStoreOptions = {}) {
@@ -130,11 +127,15 @@ export class BaseStore implements HParentStore {
     initHierarchyFromRoot(this, onInitHierarchy);
   }
 
-  $createStore<TStore extends HStore, TParams extends Array<unknown>>(
-    StoreClass: HStoreConstructor<TStore, TParams>,
-    ...params: TParams
+  $createStore<TStore extends HStore, TStoreCtorParams extends unknown[]>(
+    StoreClass: HStoreConstructor<TStore, TStoreCtorParams>,
+    ...params: TStoreCtorParams
   ): TStore {
-    return createStore(this, StoreClass, ...params);
+    return createStore(this, StoreClass)(...params);
+  }
+
+  onStoreMakeObservable(): void {
+    makeObservable(this, undefined, { autoBind: true });
   }
 
   onStoreInit?(): void;

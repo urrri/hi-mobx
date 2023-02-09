@@ -34,7 +34,7 @@ export type AsyncActionCallback<TParams extends unknown[], TResult> = (...params
 /**
  * Creates action store, which can be called directly as function and can also be accessed as store for action state
  *
- * Do not use directly, use {@link $createAsyncAction|$createAsyncAction} instead
+ * Do not use directly, use {@link $createAsyncAction} instead
  */
 export class AsyncActionStore<
   TParams extends unknown[] = [],
@@ -91,7 +91,7 @@ export class AsyncActionStore<
  * @param options.pinVersion - function that returns isCurrent function see {@link DataVersion}
  * @returns instance of callable store, which can be called as function and also can be accessed as store to reach action processing and error states
  */
-export function $createAsyncAction<
+export const $createAsyncAction = <
   TParams extends unknown[] = [],
   TResult = unknown,
   TPreRes = unknown,
@@ -100,6 +100,4 @@ export function $createAsyncAction<
   parentStore: HParentStore,
   onAction: AsyncActionCallback<TParams, TResult>,
   options: AsyncActionOptions<TParams, TResult, TPreRes, TError> = {}
-): AsyncActionStore<TParams, TResult, TPreRes, TError> {
-  return parentStore.$createStore(AsyncActionStore, onAction, options);
-}
+): AsyncActionStore<TParams, TResult, TPreRes, TError> => parentStore.$createStore(AsyncActionStore, onAction, options);

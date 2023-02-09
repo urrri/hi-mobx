@@ -1,7 +1,12 @@
-import { action } from 'mobx';
+import { action, makeObservable } from 'mobx';
 import type { HParentStore, HStore } from '../core/hierarchicalStore';
-import { findChildStore } from '../core/hierarchicalStore';
-import { getParent, getRoot, initNode, isHierarchyInitialized } from '../core/hierarchical';
+import {
+  findChildStore,
+  getParentStore,
+  getRootStore,
+  initStore,
+  isHierarchyInitialized,
+} from '../core/hierarchicalStore';
 import { Callable } from '../utils/callable';
 
 /**
@@ -21,11 +26,11 @@ export class BaseLeafCallableStore<TParams extends unknown[], TReturn = unknown>
 {
   get $parentStore(): HParentStore {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return getParent(this)!;
+    return getParentStore(this)!;
   }
 
   get $rootStore(): HParentStore {
-    return getRoot(this);
+    return getRootStore(this);
   }
 
   constructor(parentStore: HParentStore, onCall: (...params: TParams) => TReturn) {
@@ -34,7 +39,11 @@ export class BaseLeafCallableStore<TParams extends unknown[], TReturn = unknown>
       console.error('Leaf store must have parent');
       throw new Error('Leaf store must have parent');
     }
-    initNode(this, parentStore);
+    initStore(this, parentStore);
+  }
+
+  onStoreMakeObservable(): void {
+    makeObservable(this, undefined, { autoBind: true });
   }
 
   @action.bound
