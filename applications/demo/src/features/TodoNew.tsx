@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { observer } from 'mobx-react-lite';
 import { useStore } from '../helpers/useStore';
 import { onEnterPress } from '../helpers/useEnter';
 
-export function TodoNew() {
+export const TodoNew = observer(() => {
   const [newTodo, setTodo] = useState('');
   const todoList = useStore();
 
@@ -19,4 +20,4 @@ export function TodoNew() {
       </button>
     </div>
   );
-}
+});

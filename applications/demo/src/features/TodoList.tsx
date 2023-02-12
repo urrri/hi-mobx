@@ -1,11 +1,11 @@
-import { useObserver } from 'mobx-react';
+import { observer } from 'mobx-react-lite';
 import { useStore } from '../helpers/useStore';
 import { TodoItem } from './TodoItem';
 
-export const TodoList = () => {
+export const TodoList = observer(() => {
   const todoList = useStore();
 
-  return useObserver(() => (
+  return (
     <div className="todo-list">
       <div className="open-todos">
         <span>Open Todos</span>
@@ -20,5 +20,5 @@ export const TodoList = () => {
         ))}
       </div>
     </div>
-  ));
-};
+  );
+});
