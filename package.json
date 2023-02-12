@@ -8,9 +8,11 @@
     ]
   },
   "scripts": {
+    "build": "turbo run build",
+    "start": "turbo run watch start",
+    "test": "turbo run test",
     "lint": "eslint .",
-    "lint:ts": "eslint --ext .ts,.tsx ./",
-    "lint:ts:fix": "yarn lint:ts -- --fix",
+    "lint:fix": "yarn lint -- --fix",
     "spell": "cspell . --no-cache --dot --no-progress",
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write .",
@@ -18,10 +20,11 @@
     "eslint-check-config": "eslint-config-prettier ./.eslintrc"
   },
   "devDependencies": {
-    "@types/node": "^18.11.19",
     "@cspell/eslint-plugin": "^6.21.0",
+    "@types/node": "^18.11.19",
     "@typescript-eslint/eslint-plugin": "5.50.0",
     "@typescript-eslint/parser": "5.50.0",
+    "cross-env": "^7.0.3",
     "cspell": "^6.21.0",
     "eslint": "^8.33.0",
     "eslint-config-airbnb": "19.0.4",
@@ -35,13 +38,15 @@
     "eslint-plugin-jsx-a11y": "6.7.1",
     "eslint-plugin-promise": "6.1.1",
     "eslint-plugin-react": "7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-unicorn": "45.0.2",
     "husky": "^8.0.3",
     "lint-staged": "^13.1.0",
     "lodash": "^4.17.21",
     "prettier": "2.8.3",
-    "typescript": "4.9.5",
-    "vite": "4.1.1",
+    "turbo": "^1.7.4",
+    "typescript": "^4.9.5",
+    "vite": "^4.1.1",
     "vitest": "^0.28.4"
   },
   "cspell": {
