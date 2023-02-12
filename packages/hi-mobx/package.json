@@ -8,7 +8,9 @@
   "scripts": {
     "build": "tsc && vite build",
     "watch": "yarn build -w",
-    "test": "vitest",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:dev": "vitest",
     "coverage": "vitest run --coverage",
     "prepack": "json -f package.json -I -e \"delete this.devDependencies; delete this.dependencies\"",
     "webstorm-integration": "vitest --watch --reporter=dot --reporter=json --outputFile=.vitest-result.json"
@@ -19,10 +21,11 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.191",
-    "json": "11.0.0",
-    "typescript": "4.9.5",
-    "vite": "4.1.1",
-    "vite-plugin-dts": "1.7.2"
+    "json": "^11.0.0",
+    "typescript": "^4.9.5",
+    "vite": "^4.1.1",
+    "vite-plugin-dts": "^1.7.2",
+    "mobx": "^6.8.0"
   },
   "files": [
     "dist"

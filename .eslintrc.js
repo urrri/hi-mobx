@@ -1,11 +1,6 @@
+const path = require('node:path');
+
 module.exports = {
-  plugins: [
-    // '@typescript-eslint',
-    // 'eslint-comments',
-    // "jest",
-    // 'promise',
-    // 'unicorn',
-  ],
   extends: [
     'airbnb',
     'airbnb-typescript',
@@ -26,7 +21,7 @@ module.exports = {
   },
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: './tsconfig.eslint.json',
+    project: path.resolve(__dirname, 'tsconfig.eslint.json'),
   },
   settings: {
     react: {
@@ -88,9 +83,7 @@ module.exports = {
   overrides: [
     {
       files: ['*.ts', '*.tsx', '*.mts', '*.cts'],
-      // extends: [
-      //   'plugin:@typescript-eslint/recommended-requiring-type-checking',
-      // ],
+      // extends: ['plugin:@typescript-eslint/recommended-requiring-type-checking'],
       rules: {
         'no-use-before-define': 'off',
         '@typescript-eslint/no-unused-expressions': [
