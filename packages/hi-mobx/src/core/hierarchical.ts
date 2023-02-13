@@ -104,7 +104,7 @@ export const markHierarchyCreated = <TNode extends HNode<TNode>>(node: TNode): v
   }
 };
 
-export const initHierarchyFromRoot = <TNode extends HNode<TNode>>(
+export const initHierarchyIfOnRoot = <TNode extends HNode<TNode>>(
   node: HNode<TNode>,
   onInitHierarchy: (root: TNode) => void
 ): void => {

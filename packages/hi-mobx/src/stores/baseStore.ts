@@ -1,5 +1,5 @@
 import { action, makeObservable } from 'mobx';
-import { initHierarchyFromRoot } from '../core/hierarchical';
+// import { initHierarchyIfOnRoot } from '../core/hierarchical';
 import {
   createStore,
   findChildStore,
@@ -124,7 +124,7 @@ export class BaseStore implements HParentStore {
 
     onBeforeInit?.(this);
 
-    initHierarchyFromRoot(this, onInitHierarchy);
+    // initHierarchyIfOnRoot(this, onInitHierarchy);
   }
 
   $createStore<TStore extends HStore, TStoreCtorParams extends unknown[]>(

@@ -4,7 +4,7 @@ import {
   getCustomMeta,
   getParent,
   HNode,
-  initHierarchyFromRoot,
+  initHierarchyIfOnRoot,
   initNode,
   isHierarchyCreated,
   markHierarchyCreated,
@@ -227,14 +227,14 @@ export const forEachStore = forEachNode<HStore, StoreMeta>((storeMeta: StoreMeta
 
 /**
  * This function initializes stores hierarchically.
- * It should be called for the root store by {@link initHierarchyFromRoot} (when all stores are
+ * It should be called for the root store by {@link initHierarchyIfOnRoot} (when all stores are
  * created)
  * or for the top dynamically created story, when all sub-stories are created.
  *
  * Note: Child stores are initializing after parents (except created out of construction time).
  * @param topStore - store to start initialization from
  * @see createHRoot
- * @see initHierarchyFromRoot
+ * @see initHierarchyIfOnRoot
  */
 export const initHierarchy = (topStore: HStore): void => {
   // pre-init store props
@@ -331,7 +331,7 @@ export const initStoreWithChildren = (
     storeMeta.children = createChildren(store, children); // eslint-disable-line no-param-reassign
     storeMeta.privateChildren = createChildren(store, privateChildren); // eslint-disable-line no-param-reassign
   });
-  markHierarchyCreated(store); // todo: remove
+  // markHierarchyCreated(store); // todo: remove
 };
 
 /**
@@ -378,7 +378,7 @@ export const createHRoot = <
 
   markHierarchyCreated(root);
 
-  initHierarchyFromRoot(root, onInitHierarchy);
+  initHierarchyIfOnRoot(root, onInitHierarchy);
 
   return root as never;
 };
