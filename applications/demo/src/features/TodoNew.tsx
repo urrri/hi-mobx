@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { useStore } from '../helpers/useStore';
+import { useStore } from '../stores/useStore';
 import { onEnterPress } from '../helpers/useEnter';
 
 export const TodoNew = observer(() => {
   const [newTodo, setTodo] = useState('');
-  const todoList = useStore();
+  const { todoList } = useStore();
 
   const addTodo = () => {
     todoList.addTodo(newTodo);

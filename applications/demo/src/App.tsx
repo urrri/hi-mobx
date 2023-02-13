@@ -2,18 +2,12 @@
 import './App.css';
 import { TodoList } from './features/TodoList';
 import { TodoNew } from './features/TodoNew';
-import { StoreProvider } from './helpers/storeProvider';
-import { TodoList as TodoListStore } from './stores/todoList';
-
-const todoList = new TodoListStore([
-  'Should Starting Writing in React',
-  'Should Learn MobX',
-  'Should Watch Once Piece :)',
-]);
+import { StoreProvider } from './stores/storeProvider';
+import { rootStore } from './stores/rootStore';
 
 function App() {
   return (
-    <StoreProvider value={todoList}>
+    <StoreProvider value={rootStore}>
       <div className="App">
         <TodoNew />
         <TodoList />

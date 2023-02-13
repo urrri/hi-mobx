@@ -1,17 +1,18 @@
-import { action, computed, makeObservable, observable } from 'mobx';
+import { action, computed, observable } from 'mobx';
+import { BaseStore } from '@urrri/hi-mobx';
 import TodoItem from './todoItem';
 
-export class TodoList {
+const initialList = ['Should Starting Writing in React', 'Should Learn Hi-MobX', 'Should Watch Once Piece :)'];
+export class TodoList extends BaseStore {
   @observable.shallow list: TodoItem[] = [];
 
-  constructor(todos: string[]) {
-    makeObservable(this);
-    todos.forEach((text) => this.addTodo(text));
+  onStoreInit() {
+    initialList.forEach((text) => this.addTodo(text));
   }
 
   @action
   addTodo = (text: string) => {
-    this.list.push(new TodoItem(text));
+    this.list.push(this.$createStore(TodoItem, text));
   };
 
   @action

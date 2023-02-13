@@ -9,7 +9,9 @@ export type UncapitalizeRecordKeys<T extends Record<keyof T, unknown>> = {
  * un-capitalizes keys of the record
  */
 export const uncapitalizeKeys = <T extends Record<keyof T, unknown>>(record: T): UncapitalizeRecordKeys<T> => {
-  const res = {};
-  Object.keys(record).forEach((key) => key.replace(/^([A-Z])/, (m: string) => m[0]?.toLowerCase() || ''));
-  return res as UncapitalizeRecordKeys<T>;
+  const entries = Object.entries(record).map(([key, val]) => [
+    key.replace(/^([A-Z])/, (m: string) => m[0]?.toLowerCase() || ''),
+    val,
+  ]);
+  return Object.fromEntries(entries) as UncapitalizeRecordKeys<T>;
 };

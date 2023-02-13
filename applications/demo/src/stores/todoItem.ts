@@ -1,14 +1,15 @@
-import { action, makeObservable, observable } from 'mobx';
+import { action, observable } from 'mobx';
+import { BaseStore, HParentStore } from '@urrri/hi-mobx';
 
-export default class TodoItem {
+export default class TodoItem extends BaseStore {
   id = Date.now();
 
   @observable text: string = '';
 
   @observable isDone: boolean = false;
 
-  constructor(text: string) {
-    makeObservable(this);
+  constructor(parent: HParentStore, text: string) {
+    super(parent);
     this.text = text;
   }
 

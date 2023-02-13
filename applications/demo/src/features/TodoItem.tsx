@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import TodoItemClass from '../stores/todoItem';
-import { useStore } from '../helpers/useStore';
+import { useStore } from '../stores/useStore';
 import { onEnterPress } from '../helpers/useEnter';
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
 }
 
 export const TodoItem = observer(({ todo }: Props) => {
-  const todoList = useStore();
+  const { todoList } = useStore();
   const [newText, setText] = useState('');
   const [isEditing, setEdit] = useState(false);
 

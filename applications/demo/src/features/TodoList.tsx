@@ -1,9 +1,9 @@
 import { observer } from 'mobx-react-lite';
-import { useStore } from '../helpers/useStore';
+import { useStore } from '../stores/useStore';
 import { TodoItem } from './TodoItem';
 
 export const TodoList = observer(() => {
-  const todoList = useStore();
+  const { todoList } = useStore();
 
   return (
     <div className="todo-list">
