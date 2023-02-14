@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import TodoItemClass from '../stores/todoItem';
 import { useStore } from '../stores/useStore';
-import { onEnterPress } from '../helpers/useEnter';
+import { onEnterPress } from '../utils/useEnter';
 
 interface Props {
   todo: TodoItemClass;
