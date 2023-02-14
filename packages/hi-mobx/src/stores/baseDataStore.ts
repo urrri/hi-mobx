@@ -40,7 +40,8 @@ interface IDataInitReset extends Object {
  *
  */
 export abstract class BaseDataStore<TData = unknown, TLoadParams extends unknown[] = unknown[]>
-  extends BaseStore
+  // todo
+  extends BaseStore<HParentStore>
   implements IDataInitReset
 {
   [dataFieldMeta]?: DataFieldMeta;

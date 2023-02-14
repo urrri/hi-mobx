@@ -5,10 +5,10 @@ import { onEnterPress } from '../helpers/useEnter';
 
 export const TodoNew = observer(() => {
   const [newTodo, setTodo] = useState('');
-  const { todoList } = useStore();
+  const { todoNew } = useStore();
 
   const addTodo = () => {
-    todoList.addTodo(newTodo);
+    todoNew.addTodo(newTodo);
     setTodo('');
   };
 

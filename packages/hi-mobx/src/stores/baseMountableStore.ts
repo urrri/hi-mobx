@@ -1,8 +1,9 @@
 import type { EffectCallback } from 'react';
 import { observable, runInAction } from 'mobx';
 import { BaseStore } from './baseStore';
+import { HParentStore } from '../core/hierarchicalStore';
 
-export class BaseMountableStore<TMountableParams extends unknown[] = []> extends BaseStore {
+export class BaseMountableStore<TMountableParams extends unknown[] = []> extends BaseStore<HParentStore> /* todo */ {
   /**
    * Related component is mounted, but have not finished state initialization
    */

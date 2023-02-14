@@ -99,7 +99,7 @@ export interface HParentStore extends HStore {
    * (excluding first parentStore parameter)
    */
   $createStore<TStore extends HStore, TParams extends unknown[]>(
-    StoreClass: HStoreConstructor<TStore, TParams>,
+    StoreClass: HStoreConstructor<TStore, HParentStore, TParams>,
     ...params: TParams
   ): TStore;
 
@@ -130,8 +130,12 @@ export interface StoreMeta {
 /**
  * hierarchical store constructor type. allows passing store class as newable objects
  */
-export interface HStoreConstructor<TStore extends HStore = HStore, TParams extends unknown[] = never[]> {
-  new (parent: HParentStore, ...params: TParams): TStore;
+export interface HStoreConstructor<
+  TStore extends HStore = HStore,
+  TParent extends HParentStore = HParentStore,
+  TParams extends unknown[] = never[]
+> {
+  new (parent: TParent, ...params: TParams): TStore;
 }
 
 // export type HStoreConstructor<T extends HStore = HStore, P extends unknown[] = []> = new (
@@ -273,9 +277,9 @@ export const initHierarchy = (topStore: HStore): void => {
  * @param onInitHierarchy
  */
 export const createStore =
-  <TStore extends HStore, TStoreCtorParams extends unknown[]>(
-    currentStore: HParentStore,
-    StoreClass: HStoreConstructor<TStore, TStoreCtorParams>,
+  <TStore extends HStore, TStoreParent extends HParentStore, TStoreCtorParams extends unknown[]>(
+    currentStore: TStoreParent,
+    StoreClass: HStoreConstructor<TStore, TStoreParent, TStoreCtorParams>,
     onInitHierarchy = initHierarchy
   ) =>
   /**
@@ -366,7 +370,7 @@ export const findChildStore = (topStore: HParentStore, name: string): HStore | u
  * @param onInitHierarchy - custom hierarchy initialization, defaults to {@link initHierarchy}
  */
 export const createHRoot = <
-  TRoot extends HStoreConstructor<HRootStore>,
+  TRoot extends HStoreConstructor<HParentStore, never>,
   TList extends Record<keyof TList, HStoreConstructor>
 >(
   list: TList,

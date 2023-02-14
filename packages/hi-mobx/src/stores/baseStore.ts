@@ -83,6 +83,8 @@ export type BaseStoreOptions = {
   onBeforeInit?: (store: HParentStore) => void;
 };
 
+type ExtractRoot<P> = P extends BaseStore<any, infer R> ? R : HParentStore;
+
 /**
  * The base class for Mobx stores, allowing you to combine them into a hierarchy
  * and have direct access to parents, children, root and any store in the hierarchy.
@@ -109,17 +111,19 @@ export type BaseStoreOptions = {
  * If defined both onStoreInit and onStoreReset, then first one will be called during initialization and second one during resetting;
  * To prevent code duplication you can remove onStoreReset or call onStoreInit manually from it
  */
-export class BaseStore implements HParentStore {
-  get $parentStore(): HParentStore {
+export class BaseStore<TParent extends HParentStore, TRoot extends HParentStore = ExtractRoot<TParent>>
+  implements HParentStore
+{
+  get $parentStore(): TParent {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return getParentStore(this)!;
+    return getParentStore(this)! as TParent;
   }
 
-  get $rootStore(): HParentStore {
-    return getRootStore(this);
+  get $rootStore(): TRoot {
+    return getRootStore(this) as TRoot;
   }
 
-  constructor(parentStore: HParentStore, { children, privateChildren, onBeforeInit }: BaseStoreOptions = {}) {
+  constructor(parentStore: TParent, { children, privateChildren, onBeforeInit }: BaseStoreOptions = {}) {
     initStoreWithChildren(this, parentStore, children, privateChildren);
 
     onBeforeInit?.(this);
@@ -127,8 +131,13 @@ export class BaseStore implements HParentStore {
     // initHierarchyIfOnRoot(this, onInitHierarchy);
   }
 
-  $createStore<TStore extends HStore, TStoreCtorParams extends unknown[]>(
-    StoreClass: HStoreConstructor<TStore, TStoreCtorParams>,
+  $createStore<
+    TStore extends HStore,
+    TStoreParent extends BaseStore<TParent, TRoot>,
+    TStoreCtorParams extends unknown[]
+  >(
+    this: TStoreParent,
+    StoreClass: HStoreConstructor<TStore, TStoreParent, TStoreCtorParams>,
     ...params: TStoreCtorParams
   ): TStore {
     return createStore(this, StoreClass)(...params);

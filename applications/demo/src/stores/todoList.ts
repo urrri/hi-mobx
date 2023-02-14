@@ -1,9 +1,10 @@
 import { action, computed, observable } from 'mobx';
 import { BaseStore } from '@urrri/hi-mobx';
 import TodoItem from './todoItem';
+import type { RootStore } from './rootStore';
 
 const initialList = ['Should Starting Writing in React', 'Should Learn Hi-MobX', 'Should Watch Once Piece :)'];
-export class TodoList extends BaseStore {
+export class TodoList extends BaseStore<RootStore> {
   @observable.shallow list: TodoItem[] = [];
 
   onStoreInit() {
