@@ -71,13 +71,13 @@ export interface HStore extends HNode<HParentStore>, IInitReset {
   /**
    * Searches for a store by name or by fully qualified name ("parents.children") among all stores in the hierarchy, starting with {@link $rootStore}.
    * If store name is duplicated and so registered under hierarchical name, then searching by own name will throw error.
-   * @param name - name of store to search for
+   * @param name - name or hierarchical name of a store to search for
    * @returns returns first found store if one
    * @throws Error when searching by duplicated name. Use fully qualified name for this search
    * @example
-   *   this.$getStore('MyStore')
+   *   this.$getStore('myStore')
    *    or
-   *   this.$getStore('MyGrandPaStore.MyParentStore.MyStore')
+   *   this.$getStore('myGrandPaStore.myParentStore.myStore')
    */
   $getStore<T extends HStore = HStore>(name: string): T;
 }
@@ -107,12 +107,12 @@ export interface HParentStore extends HStore {
    * Searches for a store by name or by relative hierarchical name ("child.subChildren") among all stores in the hierarchy, starting with current store.
    * If duplicated names found, then first found will be returned.
    * Using on rootStore can throw Error with duplicated names (see {@link $getStore})
-   * @param {string} name - name of store to search for
+   * @param {string} name - name or hierarchical name of a descendent store to search for
    * @returns {BaseStore} returns first found store if one
    * @example
-   *  this.$getChildStore('MyStore')
+   *  this.$getChildStore('myStore')
    *  or
-   *  myGrandPaStore.$getChildStore('MyParentStore.MyStore')   */
+   *  myGrandPaStore.$getChildStore('myParentStore.myStore')   */
   $getChildStore<T extends HStore = HStore>(name: string): T;
 }
 
