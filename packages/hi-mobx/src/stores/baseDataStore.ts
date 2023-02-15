@@ -1,5 +1,3 @@
-/* eslint-disable class-methods-use-this */
-
 import { computed, observable, runInAction } from 'mobx';
 import { addReadonlyProp } from '../utils/objUtils';
 import { BaseStore } from './baseStore';
@@ -39,9 +37,12 @@ interface IDataInitReset extends Object {
  * Note: NEVER override onStoreInit or onStoreReset, because it can break coherence of the data
  *
  */
-export abstract class BaseDataStore<TData = unknown, TLoadParams extends unknown[] = unknown[]>
-  // todo
-  extends BaseStore<HParentStore>
+export abstract class BaseDataStore<
+    TParent extends HParentStore,
+    TData = unknown,
+    TLoadParams extends unknown[] = unknown[]
+  >
+  extends BaseStore<TParent>
   implements IDataInitReset
 {
   [dataFieldMeta]?: DataFieldMeta;
@@ -251,21 +252,22 @@ export abstract class BaseDataStore<TData = unknown, TLoadParams extends unknown
 }
 
 export const $createDataStore = <
+  TParent extends BaseStore<any>,
   TData = unknown,
   TField extends string = 'data',
   TLoadParams extends unknown[] = unknown[],
   TMembers extends Record<string, unknown> = Record<never, never>
 >(
-  parentStore: HParentStore,
+  parentStore: TParent,
   onLoad: (...params: TLoadParams) => Promise<TData> | TData,
   {
     name = 'data' as TField,
     defaultValue,
     members,
   }: { name?: TField; defaultValue?: ValueOrGetter<TData>; members?: TMembers } = {}
-): BaseDataStore<TData, TLoadParams> & TMembers & { [p in TField]: TData } =>
+): BaseDataStore<TParent, TData, TLoadParams> & TMembers & { [p in TField]: TData } =>
   parentStore.$createStore(
-    class extends BaseDataStore<TData, TLoadParams> {
+    class extends BaseDataStore<TParent, TData, TLoadParams> {
       onLoad = onLoad;
     },
     {
@@ -274,6 +276,32 @@ export const $createDataStore = <
         BaseDataStore.autoData(defaultValue)(dataStore, name);
       },
     }
-  ) as BaseDataStore<TData, TLoadParams> & TMembers & { [p in TField]: TData };
+  ) as BaseDataStore<TParent, TData, TLoadParams> & TMembers & { [p in TField]: TData };
 
-/* eslint-enable class-methods-use-this */
+// class X extends BaseStore<B> {
+//   x = 1;
+// }
+// class Y extends BaseStore<X> {
+//   y = 1;
+// }
+//
+// class B extends BaseDataStore<R, string> {
+//   // eslint-disable-next-line class-methods-use-this
+//   onLoad(): Promise<string> | string {
+//     this.y = this.x.$createStore(Y);
+//     return 'undefined';
+//   }
+//
+//   y?: Y;
+//
+//   x = this.$createStore(X);
+// }
+// class R extends BaseStore<never, R> {
+//   b = this.$createStore(B);
+//
+//   // eslint-disable-next-line unicorn/consistent-function-scoping
+//   c = $createDataStore(this, () => 'ttt');
+// }
+//
+// const r = new R(null as never);
+// const rr = r.b.y?.$rootStore;
