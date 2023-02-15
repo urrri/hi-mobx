@@ -4,6 +4,7 @@ import { BaseStore } from './baseStore';
 import { DataVersion } from '../utils/dataVersion';
 import { $createAsyncAction, AsyncActionCallback, AsyncActionOptions, AsyncActionStore } from './asyncActionStore';
 import { HParentStore } from '../core/hierarchicalStore';
+import { Awaitable } from '../utils/types';
 
 const dataFieldMeta = Symbol('store-data-field-meta');
 
@@ -221,7 +222,7 @@ export abstract class BaseDataStore<
    * @param params - parameters received by "load"
    * @returns returns loaded data or promise resolving to loaded data
    */
-  abstract onLoad(...params: TLoadParams): Promise<TData> | TData;
+  abstract onLoad(...params: TLoadParams): Awaitable<TData>;
 
   /**
    * Override to store loaded (by onLoad) data, only if you need extended data storage process;
@@ -266,7 +267,7 @@ export const $createDataStore = <
   TParent extends HParentStore = HParentStore
 >(
   parentStore: TParent,
-  onLoad: (...params: TLoadParams) => Promise<TData> | TData,
+  onLoad: (...params: TLoadParams) => Awaitable<TData>,
   {
     name = 'data' as TField,
     defaultValue,

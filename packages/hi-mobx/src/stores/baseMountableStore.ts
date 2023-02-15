@@ -2,6 +2,7 @@ import type { EffectCallback } from 'react';
 import { observable, runInAction } from 'mobx';
 import { BaseStore } from './baseStore';
 import { HParentStore } from '../core/hierarchicalStore';
+import { Awaitable } from '../utils/types';
 
 export class BaseMountableStore<
   TParent extends HParentStore,
@@ -59,7 +60,7 @@ export class BaseMountableStore<
    *
    * Override to handle any sync/async state initializations.
    */
-  onMount?(...params: TMountableParams): void | Promise<void>;
+  onMount?(...params: TMountableParams): Awaitable<void>;
 
   /**
    * Called, when related component is unmounted.

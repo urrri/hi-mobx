@@ -14,3 +14,8 @@ export type InstantiateClasses<TList extends Record<keyof TList, AbstractConstru
  * appends null | undefined to specified type
  */
 export type Nullable<T> = T | null | undefined;
+
+/**
+ * type that returns sync | async function
+ */
+export type Awaitable<T> = T | PromiseLike<T>;
