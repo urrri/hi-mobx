@@ -1,4 +1,5 @@
 import { get } from 'lodash';
+import { Nullable, InstantiateClasses } from '../utils/types';
 import {
   forEachNode,
   getCustomMeta,
@@ -13,7 +14,6 @@ import {
   getRoot,
 } from './hierarchical';
 import { uncapitalizeKeys, UncapitalizeRecordKeys } from '../utils/stringUtils';
-import { InstantiateClasses } from '../utils/types';
 
 interface IInitReset extends Object {
   /**
@@ -65,7 +65,7 @@ interface IInitReset extends Object {
 }
 
 export interface HStore extends HNode<HParentStore>, IInitReset {
-  readonly $parentStore: HParentStore;
+  readonly $parentStore: Nullable<HParentStore>;
   readonly $rootStore: HParentStore;
 
   /**
@@ -327,7 +327,7 @@ export const initStore = (store: HStore, parentStore: HParentStore): void => ini
 
 export const initStoreWithChildren = (
   store: HParentStore,
-  parentStore: HParentStore,
+  parentStore: Nullable<HParentStore>,
   children?: Record<string, StoreCreator>,
   privateChildren?: Record<string, StoreCreator>
 ): void => {

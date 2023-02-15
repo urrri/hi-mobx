@@ -9,3 +9,8 @@ export type AbstractConstructor<T = unknown> = abstract new (...params: never[])
 export type InstantiateClasses<TList extends Record<keyof TList, AbstractConstructor>> = {
   [P in keyof TList]: InstanceType<TList[P]>;
 };
+
+/**
+ * appends null | undefined to specified type
+ */
+export type Nullable<T> = T | null | undefined;

@@ -1,5 +1,5 @@
 import { action, makeObservable } from 'mobx';
-// import { initHierarchyIfOnRoot } from '../core/hierarchical';
+import { Nullable } from '../utils/types';
 import {
   createStore,
   findChildStore,
@@ -111,7 +111,7 @@ type ExtractRoot<P> = P extends BaseStore<any, infer R> ? R : HParentStore;
  * If defined both onStoreInit and onStoreReset, then first one will be called during initialization and second one during resetting;
  * To prevent code duplication you can remove onStoreReset or call onStoreInit manually from it
  */
-export class BaseStore<TParent extends HParentStore, TRoot extends HParentStore = ExtractRoot<TParent>>
+export class BaseStore<TParent extends Nullable<HParentStore>, TRoot extends HParentStore = ExtractRoot<TParent>>
   implements HParentStore
 {
   get $parentStore(): TParent {
@@ -163,3 +163,16 @@ export class BaseStore<TParent extends HParentStore, TRoot extends HParentStore 
     return findChildStore(this, name) as T;
   }
 }
+
+// class X extends BaseStore<R>{
+//
+// }
+// class R extends BaseStore<null|undefined, R>{
+//
+// }
+//
+// const r = new R(null)
+// const rr = new R(undefined)
+// const r1 = r.$rootStore
+// const r2 = r.$parentStore
+// const x = new X(undefined)

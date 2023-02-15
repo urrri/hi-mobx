@@ -304,13 +304,15 @@ export const $createDataStore = <
 //
 //   x = this.$createStore(X);
 // }
-// class R extends BaseStore<never, R> {
+// class R extends BaseStore<undefined, R> {
 //   b = this.$createStore(B);
 //
 //   // eslint-disable-next-line unicorn/consistent-function-scoping
 //   c = $createDataStore(this, () => 'ttt');
 // }
 //
-// const r = new R(null as never);
+// const r = new R(undefined);
 // const r1 = r.b.y?.$rootStore;
 // const r2 = r.c.$parentStore;
+// const r3 = r.b.x.$parentStore;
+// r.$parentStore
