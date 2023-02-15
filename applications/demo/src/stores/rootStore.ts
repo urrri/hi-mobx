@@ -12,7 +12,7 @@ import { TodoNew } from './todoNew';
 //   x = this.$createStore(X);
 // }
 
-export class RootStore extends BaseStore<never, RootStore> {
+export class RootStore extends BaseStore<undefined, RootStore> {
   todoList = this.$createStore(TodoList);
 
   todoNew = this.$createStore(TodoNew);

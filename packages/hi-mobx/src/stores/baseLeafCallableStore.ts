@@ -1,5 +1,5 @@
 import { action, makeObservable } from 'mobx';
-import type { HParentStore, HStore } from '../core/hierarchicalStore';
+import type { HParentStore, HStore, HStoreOptions } from '../core/hierarchicalStore';
 import {
   findChildStore,
   getParentStore,
@@ -8,8 +8,9 @@ import {
   isHierarchyInitialized,
 } from '../core/hierarchicalStore';
 import { Callable } from '../utils/callable';
+import type { ExtractRoot } from './baseStore';
 
-type ExtractRoot<P> = P extends BaseLeafCallableStore<any, any, any, infer R> ? R : HParentStore;
+// type ExtractRoot<P> = P extends BaseLeafCallableStore<any, any, any, infer R> ? R : HParentStore;
 
 /**
  * Base class for leaf callable Mobx stores. Should be instantiated by BaseStore classes.
@@ -40,13 +41,13 @@ export class BaseLeafCallableStore<
     return getRootStore(this) as TRoot;
   }
 
-  constructor(parentStore: TParent, onCall: (...params: TParams) => TReturn) {
+  constructor(options: HStoreOptions<TParent>, onCall: (...params: TParams) => TReturn) {
     super(onCall);
-    if (!parentStore) {
+    if (!options.parent) {
       console.error('Leaf store must have parent');
       throw new Error('Leaf store must have parent');
     }
-    initStore(this, parentStore);
+    initStore(this, options.parent);
   }
 
   onStoreMakeObservable(): void {

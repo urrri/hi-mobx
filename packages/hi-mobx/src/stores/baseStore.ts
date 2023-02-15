@@ -9,6 +9,7 @@ import {
   HParentStore,
   HStore,
   HStoreConstructor,
+  HStoreOptions,
   initHierarchy,
   initStoreWithChildren,
   isHierarchyInitialized,
@@ -83,7 +84,7 @@ export type BaseStoreOptions = {
   onBeforeInit?: (store: HParentStore) => void;
 };
 
-type ExtractRoot<P> = P extends BaseStore<any, infer R> ? R : HParentStore;
+export type ExtractRoot<P> = P extends BaseStore<any, infer R> ? R : HParentStore;
 
 /**
  * The base class for Mobx stores, allowing you to combine them into a hierarchy
@@ -123,8 +124,8 @@ export class BaseStore<TParent extends Nullable<HParentStore>, TRoot extends HPa
     return getRootStore(this) as TRoot;
   }
 
-  constructor(parentStore: TParent, { children, privateChildren, onBeforeInit }: BaseStoreOptions = {}) {
-    initStoreWithChildren(this, parentStore, children, privateChildren);
+  constructor(options: HStoreOptions<TParent>, { children, privateChildren, onBeforeInit }: BaseStoreOptions = {}) {
+    initStoreWithChildren(this, options.parent, children, privateChildren);
 
     onBeforeInit?.(this);
 

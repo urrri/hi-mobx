@@ -6,7 +6,7 @@ import { TodoNew } from './views/TodoNew';
 import { StoreProvider } from './stores/storeProvider';
 import { RootStore } from './stores/rootStore';
 
-const rootStore: RootStore = createRoot({}, RootStore);
+const rootStore = createRoot({}, RootStore);
 function App() {
   return (
     <StoreProvider value={rootStore}>

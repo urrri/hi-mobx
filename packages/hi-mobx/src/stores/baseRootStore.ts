@@ -1,7 +1,10 @@
-import { createHRoot, HParentStore, HRootStore, HStoreConstructor } from '../core/hierarchicalStore';
+import { createHRoot, HParentStore, HStoreConstructor } from '../core/hierarchicalStore';
 import { BaseStore, onInitHierarchy } from './baseStore';
 
-export class BaseRootStore<TRoot extends HRootStore = BaseRootStore<any>> extends BaseStore<never, TRoot> {
+export class BaseRootStore<TRoot extends BaseRootStore<any> = BaseRootStore<any>> extends BaseStore<
+  null | undefined,
+  TRoot
+> {
   // implements HRootStore
   // get $parentStore(): never {
   //   return super.$parentStore as never;
@@ -19,10 +22,10 @@ export class BaseRootStore<TRoot extends HRootStore = BaseRootStore<any>> extend
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createRoot = <
   TList extends Record<keyof TList, HStoreConstructor>,
-  TRoot extends HStoreConstructor<HParentStore, never> // = typeof BaseRootStore
+  TRoot extends HStoreConstructor<HParentStore, undefined> = typeof BaseRootStore
 >(
   list: TList,
-  RootStoreClass: TRoot // = BaseRootStore as TRoot
+  RootStoreClass: TRoot = BaseRootStore as TRoot
 ): ReturnType<typeof createHRoot<TRoot, TList>> => createHRoot(list, RootStoreClass, onInitHierarchy);
 
 // const r = createRoot({}, BaseRootStore);

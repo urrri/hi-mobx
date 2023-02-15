@@ -2,6 +2,7 @@ import { observable, runInAction } from 'mobx';
 import type { HParentStore } from '../core/hierarchicalStore';
 import { BaseLeafCallableStore } from './baseLeafCallableStore';
 import { PinVersion } from '../utils/dataVersion';
+import { HStoreOptions } from '../core/hierarchicalStore';
 
 export type AsyncActionOptions<TParams extends unknown[], TResult = unknown, TPreRes = unknown, TError = unknown> = {
   /**
@@ -48,11 +49,11 @@ export class AsyncActionStore<
   @observable isFailed = false;
 
   constructor(
-    parentStore: TParent,
+    options: HStoreOptions<TParent>,
     onAction: AsyncActionCallback<TParams, TResult>,
     { onBefore, onSuccess, onError, pinVersion }: AsyncActionOptions<TParams, TResult, TPreRes, TError> = {}
   ) {
-    super(parentStore, async (...params: TParams): Promise<void> => {
+    super(options, async (...params: TParams): Promise<void> => {
       if (this.isInProgress) {
         throw new Error('Action is in progress');
       }

@@ -127,15 +127,19 @@ export interface StoreMeta {
   dynamicBranch?: boolean;
 }
 
+export type HStoreOptions<TParent extends Nullable<HParentStore>> = {
+  parent: TParent;
+} & Record<string | symbol, unknown>;
+
 /**
  * hierarchical store constructor type. allows passing store class as newable objects
  */
 export interface HStoreConstructor<
   TStore extends HStore = HStore,
-  TParent extends HParentStore = HParentStore,
+  TParent extends Nullable<HParentStore> = HParentStore,
   TParams extends unknown[] = never[]
 > {
-  new (parent: TParent, ...params: TParams): TStore;
+  new (options: HStoreOptions<TParent>, ...params: TParams): TStore;
 }
 
 // export type HStoreConstructor<T extends HStore = HStore, P extends unknown[] = []> = new (
@@ -179,7 +183,7 @@ export const createChildren = (
     let store: HStore;
     try {
       const StoreClass = creator as HStoreConstructor;
-      store = new StoreClass(parentStore);
+      store = new StoreClass({ parent: parentStore });
     } catch {
       store = (creator as StoreFactory)(parentStore);
     }
@@ -296,7 +300,7 @@ export const createStore =
     }
 
     try {
-      const store = new StoreClass(currentStore, ...params);
+      const store = new StoreClass({ parent: currentStore }, ...params);
 
       if (hierarchyCreated) {
         // if main hierarchy is ready,
@@ -370,14 +374,14 @@ export const findChildStore = (topStore: HParentStore, name: string): HStore | u
  * @param onInitHierarchy - custom hierarchy initialization, defaults to {@link initHierarchy}
  */
 export const createHRoot = <
-  TRoot extends HStoreConstructor<HParentStore, never>,
+  TRoot extends HStoreConstructor<HParentStore, undefined>,
   TList extends Record<keyof TList, HStoreConstructor>
 >(
   list: TList,
   RootStoreClass: TRoot,
   onInitHierarchy: (root: HStore) => void = initHierarchy
 ): InstanceType<TRoot> & UncapitalizeRecordKeys<InstantiateClasses<TList>> => {
-  const root = new RootStoreClass(null as never);
+  const root = new RootStoreClass({ parent: undefined });
   setStoreMeta(root, { children: createChildren(root, uncapitalizeKeys(list)) });
 
   markHierarchyCreated(root);
