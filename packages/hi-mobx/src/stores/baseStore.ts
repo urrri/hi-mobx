@@ -131,11 +131,7 @@ export class BaseStore<TParent extends HParentStore, TRoot extends HParentStore 
     // initHierarchyIfOnRoot(this, onInitHierarchy);
   }
 
-  $createStore<
-    TStore extends HStore,
-    TStoreParent extends BaseStore<TParent, TRoot>,
-    TStoreCtorParams extends unknown[]
-  >(
+  $createStore<TStore extends HStore, TStoreParent extends HParentStore, TStoreCtorParams extends unknown[]>(
     this: TStoreParent,
     StoreClass: HStoreConstructor<TStore, TStoreParent, TStoreCtorParams>,
     ...params: TStoreCtorParams

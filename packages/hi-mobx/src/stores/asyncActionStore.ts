@@ -2,7 +2,6 @@ import { observable, runInAction } from 'mobx';
 import type { HParentStore } from '../core/hierarchicalStore';
 import { BaseLeafCallableStore } from './baseLeafCallableStore';
 import { PinVersion } from '../utils/dataVersion';
-import { BaseStore } from './baseStore';
 
 export type AsyncActionOptions<TParams extends unknown[], TResult = unknown, TPreRes = unknown, TError = unknown> = {
   /**
@@ -94,14 +93,15 @@ export class AsyncActionStore<
  * @returns instance of callable store, which can be called as function and also can be accessed as store to reach action processing and error states
  */
 export const $createAsyncAction = <
-  TParent extends BaseStore<any>,
   TParams extends unknown[] = [],
   TResult = unknown,
   TPreRes = unknown,
-  TError = unknown
+  TError = unknown,
+  TParent extends HParentStore = HParentStore
 >(
   parentStore: TParent,
   onAction: AsyncActionCallback<TParams, TResult>,
   options: AsyncActionOptions<TParams, TResult, TPreRes, TError> = {}
 ): AsyncActionStore<TParent, TParams, TResult, TPreRes, TError> =>
+  // @ts-ignore
   parentStore.$createStore(AsyncActionStore, onAction, options);

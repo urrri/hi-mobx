@@ -198,11 +198,11 @@ export abstract class BaseDataStore<
    * @returns instance of callable store, which can be called as function and also can be accessed as store to reach action processing and error states
    */
   $createAsyncAction<
-    TStoreParent extends BaseDataStore<TParent, TData, TLoadParams>,
     TParams extends unknown[] = [],
     TResult = unknown,
     TPreRes = unknown,
-    TError = unknown
+    TError = unknown,
+    TStoreParent extends BaseDataStore<TParent, TData, TLoadParams> = BaseDataStore<TParent, TData, TLoadParams>
   >(
     this: TStoreParent,
     onAction: AsyncActionCallback<TParams, TResult>,
@@ -259,11 +259,11 @@ export abstract class BaseDataStore<
 }
 
 export const $createDataStore = <
-  TParent extends BaseStore<any>,
   TData = unknown,
   TField extends string = 'data',
   TLoadParams extends unknown[] = unknown[],
-  TMembers extends Record<string, unknown> = Record<never, never>
+  TMembers extends Record<string, unknown> = Record<never, never>,
+  TParent extends HParentStore = HParentStore
 >(
   parentStore: TParent,
   onLoad: (...params: TLoadParams) => Promise<TData> | TData,
@@ -274,6 +274,7 @@ export const $createDataStore = <
   }: { name?: TField; defaultValue?: ValueOrGetter<TData>; members?: TMembers } = {}
 ): BaseDataStore<TParent, TData, TLoadParams> & TMembers & { [p in TField]: TData } =>
   parentStore.$createStore(
+    // @ts-ignore
     class extends BaseDataStore<TParent, TData, TLoadParams> {
       onLoad = onLoad;
     },
@@ -311,4 +312,5 @@ export const $createDataStore = <
 // }
 //
 // const r = new R(null as never);
-// const rr = r.b.y?.$rootStore;
+// const r1 = r.b.y?.$rootStore;
+// const r2 = r.c.$parentStore;
