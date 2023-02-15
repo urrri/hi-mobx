@@ -2,6 +2,7 @@ import { observable, runInAction } from 'mobx';
 import type { HParentStore } from '../core/hierarchicalStore';
 import { BaseLeafCallableStore } from './baseLeafCallableStore';
 import { PinVersion } from '../utils/dataVersion';
+import { BaseStore } from './baseStore';
 
 export type AsyncActionOptions<TParams extends unknown[], TResult = unknown, TPreRes = unknown, TError = unknown> = {
   /**
@@ -37,17 +38,18 @@ export type AsyncActionCallback<TParams extends unknown[], TResult> = (...params
  * Do not use directly, use {@link $createAsyncAction} instead
  */
 export class AsyncActionStore<
+  TParent extends HParentStore,
   TParams extends unknown[] = [],
   TResult = unknown,
   TPreRes = unknown,
   TError = unknown
-> extends BaseLeafCallableStore<TParams, Promise<void>> {
+> extends BaseLeafCallableStore<TParent, TParams, Promise<void>> {
   @observable isInProgress = false;
 
   @observable isFailed = false;
 
   constructor(
-    parentStore: HParentStore,
+    parentStore: TParent,
     onAction: AsyncActionCallback<TParams, TResult>,
     { onBefore, onSuccess, onError, pinVersion }: AsyncActionOptions<TParams, TResult, TPreRes, TError> = {}
   ) {
@@ -92,12 +94,14 @@ export class AsyncActionStore<
  * @returns instance of callable store, which can be called as function and also can be accessed as store to reach action processing and error states
  */
 export const $createAsyncAction = <
+  TParent extends BaseStore<any>,
   TParams extends unknown[] = [],
   TResult = unknown,
   TPreRes = unknown,
   TError = unknown
 >(
-  parentStore: HParentStore,
+  parentStore: TParent,
   onAction: AsyncActionCallback<TParams, TResult>,
   options: AsyncActionOptions<TParams, TResult, TPreRes, TError> = {}
-): AsyncActionStore<TParams, TResult, TPreRes, TError> => parentStore.$createStore(AsyncActionStore, onAction, options);
+): AsyncActionStore<TParent, TParams, TResult, TPreRes, TError> =>
+  parentStore.$createStore(AsyncActionStore, onAction, options);

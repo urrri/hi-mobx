@@ -9,6 +9,8 @@ import {
 } from '../core/hierarchicalStore';
 import { Callable } from '../utils/callable';
 
+type ExtractRoot<P> = P extends BaseLeafCallableStore<any, any, any, infer R> ? R : HParentStore;
+
 /**
  * Base class for leaf callable Mobx stores. Should be instantiated by BaseStore classes.
  *
@@ -20,20 +22,25 @@ import { Callable } from '../utils/callable';
  *
  * See BaseStore documentation for additional info.
  */
-export class BaseLeafCallableStore<TParams extends unknown[], TReturn = unknown>
+export class BaseLeafCallableStore<
+    TParent extends HParentStore,
+    TParams extends unknown[],
+    TReturn = unknown,
+    TRoot extends HParentStore = ExtractRoot<TParent>
+  >
   extends Callable<TParams, TReturn>
   implements HStore
 {
-  get $parentStore(): HParentStore {
+  get $parentStore(): TParent {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return getParentStore(this)!;
+    return getParentStore(this)! as TParent;
   }
 
-  get $rootStore(): HParentStore {
-    return getRootStore(this);
+  get $rootStore(): TRoot {
+    return getRootStore(this) as TRoot;
   }
 
-  constructor(parentStore: HParentStore, onCall: (...params: TParams) => TReturn) {
+  constructor(parentStore: TParent, onCall: (...params: TParams) => TReturn) {
     super(onCall);
     if (!parentStore) {
       console.error('Leaf store must have parent');
@@ -46,13 +53,15 @@ export class BaseLeafCallableStore<TParams extends unknown[], TReturn = unknown>
     makeObservable(this, undefined, { autoBind: true });
   }
 
+  onStoreInit?(): void;
+
+  onStoreReset?(): void;
+
   @action.bound
   resetStore(): void {
     if (!isHierarchyInitialized(this)) {
       console.error('Warning: avoid resetting stores while initialization');
     }
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     this.onStoreReset ? this.onStoreReset() : this.onStoreInit?.();
   }
 

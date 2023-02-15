@@ -156,8 +156,6 @@ export class BaseStore<TParent extends HParentStore, TRoot extends HParentStore 
     if (!isHierarchyInitialized(this)) {
       console.error('Warning: avoid resetting stores while initialization');
     }
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // -@ts-ignore
     this.onStoreReset ? this.onStoreReset() : this.onStoreInit?.();
   }
 

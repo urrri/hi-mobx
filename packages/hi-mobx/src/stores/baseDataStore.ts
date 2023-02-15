@@ -197,10 +197,17 @@ export abstract class BaseDataStore<
    * @param options.onError - sync handler for action error handling
    * @returns instance of callable store, which can be called as function and also can be accessed as store to reach action processing and error states
    */
-  $createAsyncAction<TParams extends unknown[] = [], TResult = unknown, TPreRes = unknown, TError = unknown>(
+  $createAsyncAction<
+    TStoreParent extends BaseDataStore<TParent, TData, TLoadParams>,
+    TParams extends unknown[] = [],
+    TResult = unknown,
+    TPreRes = unknown,
+    TError = unknown
+  >(
+    this: TStoreParent,
     onAction: AsyncActionCallback<TParams, TResult>,
     options: Omit<AsyncActionOptions<TParams, TResult, TPreRes, TError>, 'pinVersion'> = {}
-  ): AsyncActionStore<TParams, TResult, TPreRes, TError> {
+  ): AsyncActionStore<TStoreParent, TParams, TResult, TPreRes, TError> {
     return $createAsyncAction(this, onAction, {
       ...options,
       pinVersion: this.#dataVersion.pin,
