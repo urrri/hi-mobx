@@ -116,10 +116,6 @@ export interface HParentStore extends HStore {
   $getChildStore<T extends HStore = HStore>(name: string): T;
 }
 
-export interface HRootStore extends HParentStore {
-  readonly $parentStore: never;
-}
-
 export interface StoreMeta {
   children?: Record<string, HStore>;
   privateChildren?: Record<string, HStore>;
@@ -390,3 +386,18 @@ export const createHRoot = <
 
   return root as never;
 };
+
+export const finalizeAsHRoot = <TRoot extends HStoreConstructor<HParentStore, undefined>>(
+  RootClass: TRoot,
+  onInitHierarchy: (root: HStore) => void = initHierarchy
+): TRoot & (new () => InstanceType<TRoot>) =>
+  // @ts-ignore
+  class extends RootClass {
+    constructor() {
+      super({ parent: undefined });
+
+      markHierarchyCreated(this);
+
+      initHierarchyIfOnRoot(this, onInitHierarchy);
+    }
+  };

@@ -1,5 +1,5 @@
 import { action, observable } from 'mobx';
-import { BaseStore } from '@urrri/hi-mobx';
+import { BaseStore, HStoreOptions } from '@urrri/hi-mobx';
 import type { TodoList } from './todoList';
 
 export default class TodoItem extends BaseStore<TodoList> {
@@ -9,8 +9,8 @@ export default class TodoItem extends BaseStore<TodoList> {
 
   @observable isDone: boolean = false;
 
-  constructor(parent: TodoList, text: string) {
-    super(parent);
+  constructor(options: HStoreOptions<TodoList>, text: string) {
+    super(options);
     this.text = text;
   }
 
