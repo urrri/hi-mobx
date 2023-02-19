@@ -37,6 +37,33 @@
   }
 }
 
-button {
-  font-size: calc(10px + 2vmin);
+.todo-new {
+  font-size: 20px;
+  margin-bottom: 30px;
+}
+
+.todo-new button {
+  font-size: 15px;
+}
+.todo-new input {
+  margin-right: 15px;
+}
+
+.todo-item {
+  font-size: 20px;
+}
+
+.todo-item span {
+  width: 350px;
+  text-align: left;
+  display: inline-block;
+}
+
+.open-todos {
+  margin-bottom: 30px;
+}
+
+.todo-item input {
+  margin-left: 15px;
+  margin-right: 15px;
 }

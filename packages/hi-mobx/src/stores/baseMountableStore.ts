@@ -1,8 +1,13 @@
 import type { EffectCallback } from 'react';
 import { observable, runInAction } from 'mobx';
 import { BaseStore } from './baseStore';
+import { HParentStore } from '../core/hierarchicalStore';
+import { Awaitable } from '../utils/types';
 
-export class BaseMountableStore<TMountableParams extends unknown[] = []> extends BaseStore {
+export class BaseMountableStore<
+  TParent extends HParentStore,
+  TMountableParams extends unknown[] = []
+> extends BaseStore<TParent> {
   /**
    * Related component is mounted, but have not finished state initialization
    */
@@ -55,7 +60,7 @@ export class BaseMountableStore<TMountableParams extends unknown[] = []> extends
    *
    * Override to handle any sync/async state initializations.
    */
-  onMount?(...params: TMountableParams): unknown | Promise<unknown>;
+  onMount?(...params: TMountableParams): Awaitable<void>;
 
   /**
    * Called, when related component is unmounted.
@@ -64,3 +69,17 @@ export class BaseMountableStore<TMountableParams extends unknown[] = []> extends
    */
   onLeave?(): void;
 }
+
+// class M extends BaseMountableStore<R, [string, number]> {
+//   // eslint-disable-next-line class-methods-use-this
+//   async onMount(a: string) {
+//     console.info(a);
+//   }
+// }
+//
+// class R extends BaseStore<never, R> {
+//   m = this.$createStore(M);
+// }
+//
+// const r = new R(null as never);
+// const x = r.m.$parentStore

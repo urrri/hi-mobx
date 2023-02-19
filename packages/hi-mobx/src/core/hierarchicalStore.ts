@@ -1,10 +1,11 @@
 import { get } from 'lodash';
+import { Nullable, InstantiateClasses } from '../utils/types';
 import {
   forEachNode,
   getCustomMeta,
   getParent,
   HNode,
-  initHierarchyFromRoot,
+  initHierarchyIfOnRoot,
   initNode,
   isHierarchyCreated,
   markHierarchyCreated,
@@ -13,7 +14,6 @@ import {
   getRoot,
 } from './hierarchical';
 import { uncapitalizeKeys, UncapitalizeRecordKeys } from '../utils/stringUtils';
-import { InstantiateClasses } from '../utils/types';
 
 interface IInitReset extends Object {
   /**
@@ -65,19 +65,19 @@ interface IInitReset extends Object {
 }
 
 export interface HStore extends HNode<HParentStore>, IInitReset {
-  readonly $parentStore: HParentStore;
+  readonly $parentStore: Nullable<HParentStore>;
   readonly $rootStore: HParentStore;
 
   /**
    * Searches for a store by name or by fully qualified name ("parents.children") among all stores in the hierarchy, starting with {@link $rootStore}.
    * If store name is duplicated and so registered under hierarchical name, then searching by own name will throw error.
-   * @param name - name of store to search for
+   * @param name - name or hierarchical name of a store to search for
    * @returns returns first found store if one
    * @throws Error when searching by duplicated name. Use fully qualified name for this search
    * @example
-   *   this.$getStore('MyStore')
+   *   this.$getStore('myStore')
    *    or
-   *   this.$getStore('MyGrandPaStore.MyParentStore.MyStore')
+   *   this.$getStore('myGrandPaStore.myParentStore.myStore')
    */
   $getStore<T extends HStore = HStore>(name: string): T;
 }
@@ -99,7 +99,7 @@ export interface HParentStore extends HStore {
    * (excluding first parentStore parameter)
    */
   $createStore<TStore extends HStore, TParams extends unknown[]>(
-    StoreClass: HStoreConstructor<TStore, TParams>,
+    StoreClass: HStoreConstructor<TStore, HParentStore, TParams>,
     ...params: TParams
   ): TStore;
 
@@ -107,17 +107,13 @@ export interface HParentStore extends HStore {
    * Searches for a store by name or by relative hierarchical name ("child.subChildren") among all stores in the hierarchy, starting with current store.
    * If duplicated names found, then first found will be returned.
    * Using on rootStore can throw Error with duplicated names (see {@link $getStore})
-   * @param {string} name - name of store to search for
+   * @param {string} name - name or hierarchical name of a descendent store to search for
    * @returns {BaseStore} returns first found store if one
    * @example
-   *  this.$getChildStore('MyStore')
+   *  this.$getChildStore('myStore')
    *  or
-   *  myGrandPaStore.$getChildStore('MyParentStore.MyStore')   */
+   *  myGrandPaStore.$getChildStore('myParentStore.myStore')   */
   $getChildStore<T extends HStore = HStore>(name: string): T;
-}
-
-export interface HRootStore extends HParentStore {
-  readonly $parentStore: never;
 }
 
 export interface StoreMeta {
@@ -127,11 +123,19 @@ export interface StoreMeta {
   dynamicBranch?: boolean;
 }
 
+export type HStoreOptions<TParent extends Nullable<HParentStore>> = {
+  parent: TParent;
+} & Record<string | symbol, unknown>;
+
 /**
  * hierarchical store constructor type. allows passing store class as newable objects
  */
-export interface HStoreConstructor<TStore extends HStore = HStore, TParams extends unknown[] = never[]> {
-  new (parent: HParentStore, ...params: TParams): TStore;
+export interface HStoreConstructor<
+  TStore extends HStore = HStore,
+  TParent extends Nullable<HParentStore> = HParentStore,
+  TParams extends unknown[] = never[]
+> {
+  new (options: HStoreOptions<TParent>, ...params: TParams): TStore;
 }
 
 // export type HStoreConstructor<T extends HStore = HStore, P extends unknown[] = []> = new (
@@ -175,7 +179,7 @@ export const createChildren = (
     let store: HStore;
     try {
       const StoreClass = creator as HStoreConstructor;
-      store = new StoreClass(parentStore);
+      store = new StoreClass({ parent: parentStore });
     } catch {
       store = (creator as StoreFactory)(parentStore);
     }
@@ -227,14 +231,14 @@ export const forEachStore = forEachNode<HStore, StoreMeta>((storeMeta: StoreMeta
 
 /**
  * This function initializes stores hierarchically.
- * It should be called for the root store by {@link initHierarchyFromRoot} (when all stores are
+ * It should be called for the root store by {@link initHierarchyIfOnRoot} (when all stores are
  * created)
  * or for the top dynamically created story, when all sub-stories are created.
  *
  * Note: Child stores are initializing after parents (except created out of construction time).
  * @param topStore - store to start initialization from
  * @see createHRoot
- * @see initHierarchyFromRoot
+ * @see initHierarchyIfOnRoot
  */
 export const initHierarchy = (topStore: HStore): void => {
   // pre-init store props
@@ -273,9 +277,9 @@ export const initHierarchy = (topStore: HStore): void => {
  * @param onInitHierarchy
  */
 export const createStore =
-  <TStore extends HStore, TStoreCtorParams extends unknown[]>(
-    currentStore: HParentStore,
-    StoreClass: HStoreConstructor<TStore, TStoreCtorParams>,
+  <TStore extends HStore, TStoreParent extends HParentStore, TStoreCtorParams extends unknown[]>(
+    currentStore: TStoreParent,
+    StoreClass: HStoreConstructor<TStore, TStoreParent, TStoreCtorParams>,
     onInitHierarchy = initHierarchy
   ) =>
   /**
@@ -292,7 +296,7 @@ export const createStore =
     }
 
     try {
-      const store = new StoreClass(currentStore, ...params);
+      const store = new StoreClass({ parent: currentStore }, ...params);
 
       if (hierarchyCreated) {
         // if main hierarchy is ready,
@@ -323,7 +327,7 @@ export const initStore = (store: HStore, parentStore: HParentStore): void => ini
 
 export const initStoreWithChildren = (
   store: HParentStore,
-  parentStore: HParentStore,
+  parentStore: Nullable<HParentStore>,
   children?: Record<string, StoreCreator>,
   privateChildren?: Record<string, StoreCreator>
 ): void => {
@@ -331,7 +335,7 @@ export const initStoreWithChildren = (
     storeMeta.children = createChildren(store, children); // eslint-disable-line no-param-reassign
     storeMeta.privateChildren = createChildren(store, privateChildren); // eslint-disable-line no-param-reassign
   });
-  markHierarchyCreated(store); // todo: remove
+  // markHierarchyCreated(store); // todo: remove
 };
 
 /**
@@ -366,19 +370,34 @@ export const findChildStore = (topStore: HParentStore, name: string): HStore | u
  * @param onInitHierarchy - custom hierarchy initialization, defaults to {@link initHierarchy}
  */
 export const createHRoot = <
-  TRoot extends HStoreConstructor<HRootStore>,
+  TRoot extends HStoreConstructor<HParentStore, undefined>,
   TList extends Record<keyof TList, HStoreConstructor>
 >(
   list: TList,
   RootStoreClass: TRoot,
   onInitHierarchy: (root: HStore) => void = initHierarchy
 ): InstanceType<TRoot> & UncapitalizeRecordKeys<InstantiateClasses<TList>> => {
-  const root = new RootStoreClass(null as never);
+  const root = new RootStoreClass({ parent: undefined });
   setStoreMeta(root, { children: createChildren(root, uncapitalizeKeys(list)) });
 
   markHierarchyCreated(root);
 
-  initHierarchyFromRoot(root, onInitHierarchy);
+  initHierarchyIfOnRoot(root, onInitHierarchy);
 
   return root as never;
 };
+
+export const finalizeAsHRoot = <TRoot extends HStoreConstructor<HParentStore, undefined>>(
+  RootClass: TRoot,
+  onInitHierarchy: (root: HStore) => void = initHierarchy
+): TRoot & (new () => InstanceType<TRoot>) =>
+  // @ts-ignore
+  class extends RootClass {
+    constructor() {
+      super({ parent: undefined });
+
+      markHierarchyCreated(this);
+
+      initHierarchyIfOnRoot(this, onInitHierarchy);
+    }
+  };

@@ -2,6 +2,7 @@ import { observable, runInAction } from 'mobx';
 import type { HParentStore } from '../core/hierarchicalStore';
 import { BaseLeafCallableStore } from './baseLeafCallableStore';
 import { PinVersion } from '../utils/dataVersion';
+import { HStoreOptions } from '../core/hierarchicalStore';
 
 export type AsyncActionOptions<TParams extends unknown[], TResult = unknown, TPreRes = unknown, TError = unknown> = {
   /**
@@ -37,21 +38,22 @@ export type AsyncActionCallback<TParams extends unknown[], TResult> = (...params
  * Do not use directly, use {@link $createAsyncAction} instead
  */
 export class AsyncActionStore<
+  TParent extends HParentStore,
   TParams extends unknown[] = [],
   TResult = unknown,
   TPreRes = unknown,
   TError = unknown
-> extends BaseLeafCallableStore<TParams, Promise<void>> {
+> extends BaseLeafCallableStore<TParent, TParams, Promise<void>> {
   @observable isInProgress = false;
 
   @observable isFailed = false;
 
   constructor(
-    parentStore: HParentStore,
+    options: HStoreOptions<TParent>,
     onAction: AsyncActionCallback<TParams, TResult>,
     { onBefore, onSuccess, onError, pinVersion }: AsyncActionOptions<TParams, TResult, TPreRes, TError> = {}
   ) {
-    super(parentStore, async (...params: TParams): Promise<void> => {
+    super(options, async (...params: TParams): Promise<void> => {
       if (this.isInProgress) {
         throw new Error('Action is in progress');
       }
@@ -95,9 +97,12 @@ export const $createAsyncAction = <
   TParams extends unknown[] = [],
   TResult = unknown,
   TPreRes = unknown,
-  TError = unknown
+  TError = unknown,
+  TParent extends HParentStore = HParentStore
 >(
-  parentStore: HParentStore,
+  parentStore: TParent,
   onAction: AsyncActionCallback<TParams, TResult>,
   options: AsyncActionOptions<TParams, TResult, TPreRes, TError> = {}
-): AsyncActionStore<TParams, TResult, TPreRes, TError> => parentStore.$createStore(AsyncActionStore, onAction, options);
+): AsyncActionStore<TParent, TParams, TResult, TPreRes, TError> =>
+  // @ts-ignore
+  parentStore.$createStore(AsyncActionStore, onAction, options);

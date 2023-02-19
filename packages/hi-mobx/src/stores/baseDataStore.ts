@@ -1,11 +1,10 @@
-/* eslint-disable class-methods-use-this */
-
 import { computed, observable, runInAction } from 'mobx';
 import { addReadonlyProp } from '../utils/objUtils';
 import { BaseStore } from './baseStore';
 import { DataVersion } from '../utils/dataVersion';
 import { $createAsyncAction, AsyncActionCallback, AsyncActionOptions, AsyncActionStore } from './asyncActionStore';
 import { HParentStore } from '../core/hierarchicalStore';
+import { Awaitable } from '../utils/types';
 
 const dataFieldMeta = Symbol('store-data-field-meta');
 
@@ -39,8 +38,12 @@ interface IDataInitReset extends Object {
  * Note: NEVER override onStoreInit or onStoreReset, because it can break coherence of the data
  *
  */
-export abstract class BaseDataStore<TData = unknown, TLoadParams extends unknown[] = unknown[]>
-  extends BaseStore
+export abstract class BaseDataStore<
+    TParent extends HParentStore,
+    TData = unknown,
+    TLoadParams extends unknown[] = unknown[]
+  >
+  extends BaseStore<TParent>
   implements IDataInitReset
 {
   [dataFieldMeta]?: DataFieldMeta;
@@ -195,10 +198,17 @@ export abstract class BaseDataStore<TData = unknown, TLoadParams extends unknown
    * @param options.onError - sync handler for action error handling
    * @returns instance of callable store, which can be called as function and also can be accessed as store to reach action processing and error states
    */
-  $createAsyncAction<TParams extends unknown[] = [], TResult = unknown, TPreRes = unknown, TError = unknown>(
+  $createAsyncAction<
+    TParams extends unknown[] = [],
+    TResult = unknown,
+    TPreRes = unknown,
+    TError = unknown,
+    TStoreParent extends BaseDataStore<TParent, TData, TLoadParams> = BaseDataStore<TParent, TData, TLoadParams>
+  >(
+    this: TStoreParent,
     onAction: AsyncActionCallback<TParams, TResult>,
     options: Omit<AsyncActionOptions<TParams, TResult, TPreRes, TError>, 'pinVersion'> = {}
-  ): AsyncActionStore<TParams, TResult, TPreRes, TError> {
+  ): AsyncActionStore<TStoreParent, TParams, TResult, TPreRes, TError> {
     return $createAsyncAction(this, onAction, {
       ...options,
       pinVersion: this.#dataVersion.pin,
@@ -212,7 +222,7 @@ export abstract class BaseDataStore<TData = unknown, TLoadParams extends unknown
    * @param params - parameters received by "load"
    * @returns returns loaded data or promise resolving to loaded data
    */
-  abstract onLoad(...params: TLoadParams): Promise<TData> | TData;
+  abstract onLoad(...params: TLoadParams): Awaitable<TData>;
 
   /**
    * Override to store loaded (by onLoad) data, only if you need extended data storage process;
@@ -253,18 +263,20 @@ export const $createDataStore = <
   TData = unknown,
   TField extends string = 'data',
   TLoadParams extends unknown[] = unknown[],
-  TMembers extends Record<string, unknown> = Record<never, never>
+  TMembers extends Record<string, unknown> = Record<never, never>,
+  TParent extends HParentStore = HParentStore
 >(
-  parentStore: HParentStore,
-  onLoad: (...params: TLoadParams) => Promise<TData> | TData,
+  parentStore: TParent,
+  onLoad: (...params: TLoadParams) => Awaitable<TData>,
   {
     name = 'data' as TField,
     defaultValue,
     members,
   }: { name?: TField; defaultValue?: ValueOrGetter<TData>; members?: TMembers } = {}
-): BaseDataStore<TData, TLoadParams> & TMembers & { [p in TField]: TData } =>
+): BaseDataStore<TParent, TData, TLoadParams> & TMembers & { [p in TField]: TData } =>
   parentStore.$createStore(
-    class extends BaseDataStore<TData, TLoadParams> {
+    // @ts-ignore
+    class extends BaseDataStore<TParent, TData, TLoadParams> {
       onLoad = onLoad;
     },
     {
@@ -273,6 +285,35 @@ export const $createDataStore = <
         BaseDataStore.autoData(defaultValue)(dataStore, name);
       },
     }
-  ) as BaseDataStore<TData, TLoadParams> & TMembers & { [p in TField]: TData };
+  ) as BaseDataStore<TParent, TData, TLoadParams> & TMembers & { [p in TField]: TData };
 
-/* eslint-enable class-methods-use-this */
+// class X extends BaseStore<B> {
+//   x = 1;
+// }
+// class Y extends BaseStore<X> {
+//   y = 1;
+// }
+//
+// class B extends BaseDataStore<R, string> {
+//   // eslint-disable-next-line class-methods-use-this
+//   onLoad(): Promise<string> | string {
+//     this.y = this.x.$createStore(Y);
+//     return 'undefined';
+//   }
+//
+//   y?: Y;
+//
+//   x = this.$createStore(X);
+// }
+// class R extends BaseStore<undefined, R> {
+//   b = this.$createStore(B);
+//
+//   // eslint-disable-next-line unicorn/consistent-function-scoping
+//   c = $createDataStore(this, () => 'ttt');
+// }
+//
+// const r = new R(undefined);
+// const r1 = r.b.y?.$rootStore;
+// const r2 = r.c.$parentStore;
+// const r3 = r.b.x.$parentStore;
+// r.$parentStore

@@ -1,3 +1,5 @@
+import { Nullable } from '../utils/types';
+
 const hidden = Symbol('hierarchical-meta');
 
 export interface HNode<TNode extends HNode<TNode>> extends Object {
@@ -8,7 +10,7 @@ type CustomMeta = Record<never, never>;
 
 interface HMeta<TNode extends HNode<TNode>> extends Object {
   root: HNode<TNode>;
-  parent: HNode<TNode>;
+  parent: Nullable<HNode<TNode>>;
   isHierarchyCreated?: boolean;
   isHierarchyInitialized?: boolean;
   customMeta: CustomMeta;
@@ -72,7 +74,7 @@ export const forEachNode =
 
 export const initNode = <TNode extends HNode<TNode>, TMeta extends CustomMeta>(
   node: HNode<TNode>,
-  parent: HNode<TNode>,
+  parent: Nullable<HNode<TNode>>,
   onCustomInit?: (customMeta: TMeta) => void
 ): void => {
   if (getMeta(node)) throw new Error('The node is already initialized');
@@ -104,7 +106,7 @@ export const markHierarchyCreated = <TNode extends HNode<TNode>>(node: TNode): v
   }
 };
 
-export const initHierarchyFromRoot = <TNode extends HNode<TNode>>(
+export const initHierarchyIfOnRoot = <TNode extends HNode<TNode>>(
   node: HNode<TNode>,
   onInitHierarchy: (root: TNode) => void
 ): void => {
